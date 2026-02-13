@@ -14,6 +14,8 @@ import Chat from "./pages/Chat";
 import Farmers from "./pages/Farmers";
 import FarmerDetail from "./pages/FarmerDetail";
 import RegisterFarmer from "./pages/RegisterFarmer";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,8 @@ const App = () => (
           <Route path="/farmers" element={<Farmers />} />
           <Route path="/farmers/register" element={<RegisterFarmer />} />
           <Route path="/farmers/:id" element={<FarmerDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -50,12 +50,14 @@ const Header = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden lg:flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              <LogIn className="w-4 h-4 mr-2" />
-              Sign In
-            </Button>
-            <Link to="/farmers/register">
-              <Button size="sm">Gabung Petani</Button>
+            <Link to="/login">
+              <Button variant="ghost" size="sm">
+                <LogIn className="w-4 h-4 mr-2" />
+                Masuk
+              </Button>
+            </Link>
+            <Link to="/register">
+              <Button size="sm">Daftar</Button>
             </Link>
           </div>
 
@@ -90,12 +92,14 @@ const Header = () => {
               ))}
             </nav>
             <div className="flex flex-col gap-2 px-4">
-              <Button variant="outline" className="w-full justify-center">
-                <LogIn className="w-4 h-4 mr-2" />
-                Sign In
-              </Button>
-              <Link to="/farmers/register" onClick={() => setIsMenuOpen(false)}>
-                <Button className="w-full justify-center">Gabung Petani</Button>
+              <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                <Button variant="outline" className="w-full justify-center">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Masuk
+                </Button>
+              </Link>
+              <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                <Button className="w-full justify-center">Daftar</Button>
               </Link>
             </div>
           </div>
