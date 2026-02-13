@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   MessageCircle,
@@ -18,137 +19,105 @@ import {
   Flag,
   CheckCircle,
   Send,
+  Loader2,
 } from "lucide-react";
+import {
+  useForumPost,
+  useComments,
+  useToggleLike,
+  useToggleBookmark,
+  useCreateComment,
+  useToggleCommentLike,
+} from "@/hooks/use-forum";
+import { useAuth } from "@/hooks/use-auth";
 
 const ForumDetail = () => {
   const { id } = useParams();
+  const postId = id ?? "";
+  const { user } = useAuth();
+  const [commentText, setCommentText] = useState("");
 
-  // Sample post data (in real app, this would be fetched based on id)
-  const post = {
-    id: 1,
-    title: "Complete guide to building a low-cost mushroom growing room",
-    content: `After 2 years of trial and error, I've finally perfected my setup. Here's everything you need to know about temperature, humidity, and airflow for growing mushrooms at home.
+  const { data: postRes, isLoading: postLoading } = useForumPost(postId);
+  const { data: commentsRes, isLoading: commentsLoading } = useComments(postId);
+  const toggleLike = useToggleLike(postId);
+  const toggleBookmark = useToggleBookmark(postId);
+  const createComment = useCreateComment(postId);
+  const toggleCommentLike = useToggleCommentLike();
 
-## Introduction
+  const post = postRes?.data;
+  const comments = commentsRes?.data?.comments ?? [];
 
-Building a mushroom growing room doesn't have to be expensive. With the right materials and setup, you can create an ideal environment for growing various types of mushrooms including oyster, shiitake, and lion's mane.
-
-## Key Factors to Consider
-
-### 1. Temperature Control
-The ideal temperature for most mushrooms is between 18-24°C. I recommend using a simple thermostat-controlled heater or cooler depending on your climate.
-
-### 2. Humidity Management
-This is crucial! Most mushrooms need 80-95% humidity. I use an ultrasonic humidifier paired with a humidity controller.
-
-### 3. Air Circulation
-Fresh air exchange is essential. Install a small exhaust fan that runs periodically to prevent CO2 buildup.
-
-## My Setup (Total Cost: Under Rp 2.000.000)
-
-- **Space**: 2x3 meter room
-- **Shelving**: Used wooden pallets (Rp 200.000)
-- **Humidifier**: Ultrasonic cool mist (Rp 350.000)
-- **Thermostat**: Digital controller (Rp 150.000)
-- **Fan**: Small exhaust with timer (Rp 200.000)
-- **Plastic sheeting**: For walls (Rp 100.000)
-- **Lighting**: Simple LED strips (Rp 150.000)
-
-## Results
-
-Since implementing this setup, I've consistently harvested 5-8kg of oyster mushrooms per week. The automated humidity and temperature control has reduced my daily maintenance time from 2 hours to just 30 minutes.
-
-Feel free to ask any questions! I'm happy to share more details about specific aspects of the setup.`,
-    category: "Tips & Tricks",
-    author: "Pak Hendra",
-    avatar: "PH",
-    authorBio:
-      "Mushroom farmer since 2020. Passionate about sustainable farming and helping others start their journey.",
-    authorPosts: 45,
-    authorReputation: 1250,
-    replies: 156,
-    likes: 423,
-    views: 2341,
-    timeAgo: "3 hours ago",
-    createdAt: "Feb 13, 2026 at 2:30 PM",
-    isHot: true,
-    images: ["/placeholder-room-1.jpg", "/placeholder-room-2.jpg"],
-    tags: ["growing room", "setup guide", "low cost", "beginner friendly"],
+  const timeAgo = (dateStr: string) => {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    return date.toLocaleDateString("id-ID");
   };
 
-  const comments = [
-    {
-      id: 1,
-      author: "Bu Wati",
-      avatar: "BW",
-      content:
-        "This is incredibly helpful! I've been wanting to start my own growing room. One question - do you use any specific brand for the humidifier? I've had issues with some breaking down too quickly.",
-      timeAgo: "2 hours ago",
-      likes: 45,
-      isAuthor: false,
-      isBestAnswer: true,
-      replies: [
-        {
-          id: 11,
-          author: "Pak Hendra",
-          avatar: "PH",
-          content:
-            "I use the Xiaomi Deerma humidifier. It's affordable and has been running for over a year without issues. The key is to use filtered water to prevent mineral buildup.",
-          timeAgo: "1 hour ago",
-          likes: 23,
-          isAuthor: true,
-        },
-      ],
-    },
-    {
-      id: 2,
-      author: "Mas Dedi",
-      avatar: "MD",
-      content:
-        "Great guide! I followed a similar approach and can confirm this works. One addition - I found that adding a small oscillating fan inside helps distribute humidity more evenly.",
-      timeAgo: "1 hour ago",
-      likes: 28,
-      isAuthor: false,
-      isBestAnswer: false,
-      replies: [],
-    },
-    {
-      id: 3,
-      author: "Ibu Sri",
-      avatar: "IS",
-      content:
-        "Thank you for sharing! What's the best time to harvest the mushrooms? I always seem to harvest too early or too late.",
-      timeAgo: "45 minutes ago",
-      likes: 12,
-      isAuthor: false,
-      isBestAnswer: false,
-      replies: [],
-    },
-  ];
+  const getInitials = (name: string) =>
+    name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
 
-  const relatedPosts = [
-    {
-      id: 4,
-      title: "Best substrate recipe for lion's mane mushrooms?",
-      author: "Ibu Sri",
-      replies: 34,
-      timeAgo: "12 hours ago",
-    },
-    {
-      id: 5,
-      title: "Connecting multiple sensors to one dashboard",
-      author: "Pak Bambang",
-      replies: 12,
-      timeAgo: "1 day ago",
-    },
-    {
-      id: 6,
-      title: "DIY humidity controller using Arduino",
-      author: "Mas Agus",
-      replies: 67,
-      timeAgo: "2 days ago",
-    },
-  ];
+  const handlePostComment = async () => {
+    if (!commentText.trim()) return;
+    await createComment.mutateAsync({ content: commentText });
+    setCommentText("");
+  };
+
+  if (postLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-16">
+          <div className="section-container">
+            <Skeleton className="h-6 w-32 mb-6" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="rounded-2xl bg-card border border-border/50 p-8 space-y-4">
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-64 w-full" />
+                </div>
+              </div>
+              <div className="space-y-6">
+                <Skeleton className="h-48 w-full rounded-2xl" />
+                <Skeleton className="h-32 w-full rounded-2xl" />
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-16">
+          <div className="section-container text-center py-20">
+            <h2 className="text-2xl font-bold mb-4">Post not found</h2>
+            <Link to="/forum">
+              <Button>Back to Forum</Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -190,15 +159,32 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                   {/* Author Info */}
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-lg">
-                        {post.avatar}
-                      </div>
+                      {post.author.avatar ? (
+                        <img
+                          src={post.author.avatar}
+                          alt={post.author.fullName}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-lg">
+                          {getInitials(post.author.fullName)}
+                        </div>
+                      )}
                       <div>
                         <p className="font-medium text-foreground">
-                          {post.author}
+                          {post.author.fullName}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {post.createdAt}
+                          {new Date(post.createdAt).toLocaleDateString(
+                            "id-ID",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
                         </p>
                       </div>
                     </div>
@@ -207,7 +193,13 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-muted-foreground hover:text-primary"
+                        className={
+                          post.isBookmarked
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-primary"
+                        }
+                        onClick={() => toggleBookmark.mutate()}
+                        disabled={toggleBookmark.isPending}
                       >
                         <Bookmark className="w-5 h-5" />
                       </Button>
@@ -302,23 +294,27 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                     <div className="flex items-center gap-4">
                       <Button
                         variant="ghost"
-                        className="gap-2 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        className={`gap-2 hover:bg-primary/10 ${post.isLiked ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                        onClick={() => toggleLike.mutate()}
+                        disabled={toggleLike.isPending}
                       >
-                        <Heart className="w-5 h-5" />
-                        <span>{post.likes}</span>
+                        <Heart
+                          className={`w-5 h-5 ${post.isLiked ? "fill-current" : ""}`}
+                        />
+                        <span>{post.likeCount}</span>
                       </Button>
                       <Button
                         variant="ghost"
                         className="gap-2 text-muted-foreground hover:text-primary hover:bg-primary/10"
                       >
                         <MessageCircle className="w-5 h-5" />
-                        <span>{post.replies}</span>
+                        <span>{post.replyCount}</span>
                       </Button>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Eye className="w-4 h-4" />
-                        {post.views.toLocaleString()} views
+                        {post.viewCount.toLocaleString()} views
                       </span>
                     </div>
                   </div>
@@ -329,7 +325,7 @@ Feel free to ask any questions! I'm happy to share more details about specific a
               <div className="rounded-2xl bg-card border border-border/50 overflow-hidden">
                 <div className="p-6 sm:p-8 border-b border-border/50">
                   <h2 className="font-display text-xl font-semibold text-foreground">
-                    Comments ({comments.length})
+                    Comments ({post.replyCount})
                   </h2>
                 </div>
 
@@ -337,16 +333,33 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                 <div className="p-6 sm:p-8 border-b border-border/50 bg-muted/20">
                   <div className="flex gap-4">
                     <div className="hidden sm:flex w-10 h-10 rounded-full bg-primary/10 items-center justify-center font-semibold text-primary text-sm flex-shrink-0">
-                      U
+                      {user ? getInitials(user.fullName) : "?"}
                     </div>
                     <div className="flex-1">
                       <Textarea
-                        placeholder="Write your comment..."
+                        placeholder={
+                          user ? "Write your comment..." : "Login to comment..."
+                        }
                         className="min-h-[100px] resize-none mb-3"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        disabled={!user}
                       />
                       <div className="flex justify-end">
-                        <Button className="gap-2">
-                          <Send className="w-4 h-4" />
+                        <Button
+                          className="gap-2"
+                          onClick={handlePostComment}
+                          disabled={
+                            !commentText.trim() ||
+                            createComment.isPending ||
+                            !user
+                          }
+                        >
+                          {createComment.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4" />
+                          )}
                           Post Comment
                         </Button>
                       </div>
@@ -356,107 +369,146 @@ Feel free to ask any questions! I'm happy to share more details about specific a
 
                 {/* Comments List */}
                 <div className="divide-y divide-border/50">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="p-6 sm:p-8">
-                      {/* Main Comment */}
-                      <div className="flex gap-4">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0 ${
-                            comment.isAuthor
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-primary/10 text-primary"
-                          }`}
-                        >
-                          {comment.avatar}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className="font-medium text-foreground">
-                              {comment.author}
-                            </span>
-                            {comment.isAuthor && (
-                              <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                                Author
-                              </span>
-                            )}
-                            {comment.isBestAnswer && (
-                              <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3" />
-                                Best Answer
-                              </span>
-                            )}
-                            <span className="text-sm text-muted-foreground">
-                              {comment.timeAgo}
-                            </span>
-                          </div>
-                          <p className="text-muted-foreground leading-relaxed mb-3">
-                            {comment.content}
-                          </p>
-                          <div className="flex items-center gap-4">
-                            <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors">
-                              <ThumbsUp className="w-4 h-4" />
-                              <span>{comment.likes}</span>
-                            </button>
-                            <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors">
-                              <Reply className="w-4 h-4" />
-                              <span>Reply</span>
-                            </button>
-                            <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors">
-                              <Flag className="w-4 h-4" />
-                              <span>Report</span>
-                            </button>
+                  {commentsLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="p-6 sm:p-8">
+                        <div className="flex gap-4">
+                          <Skeleton className="w-10 h-10 rounded-full" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-12 w-full" />
                           </div>
                         </div>
                       </div>
-
-                      {/* Nested Replies */}
-                      {comment.replies.length > 0 && (
-                        <div className="mt-6 ml-14 space-y-6">
-                          {comment.replies.map((reply) => (
-                            <div key={reply.id} className="flex gap-4">
-                              <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs flex-shrink-0 ${
-                                  reply.isAuthor
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-primary/10 text-primary"
-                                }`}
-                              >
-                                {reply.avatar}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                  <span className="font-medium text-foreground text-sm">
-                                    {reply.author}
-                                  </span>
-                                  {reply.isAuthor && (
-                                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                                      Author
-                                    </span>
-                                  )}
-                                  <span className="text-xs text-muted-foreground">
-                                    {reply.timeAgo}
-                                  </span>
-                                </div>
-                                <p className="text-muted-foreground text-sm leading-relaxed mb-2">
-                                  {reply.content}
-                                </p>
-                                <div className="flex items-center gap-4">
-                                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
-                                    <ThumbsUp className="w-3 h-3" />
-                                    <span>{reply.likes}</span>
-                                  </button>
-                                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
-                                    <Reply className="w-3 h-3" />
-                                    <span>Reply</span>
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    ))
+                  ) : comments.length === 0 ? (
+                    <div className="p-8 text-center text-muted-foreground">
+                      No comments yet. Be the first to comment!
                     </div>
-                  ))}
+                  ) : (
+                    comments.map((comment) => (
+                      <div key={comment.id} className="p-6 sm:p-8">
+                        {/* Main Comment */}
+                        <div className="flex gap-4">
+                          {comment.author.avatar ? (
+                            <img
+                              src={comment.author.avatar}
+                              alt={comment.author.fullName}
+                              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div
+                              className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0 ${
+                                comment.author.isPostAuthor
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-primary/10 text-primary"
+                              }`}
+                            >
+                              {getInitials(comment.author.fullName)}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <span className="font-medium text-foreground">
+                                {comment.author.fullName}
+                              </span>
+                              {comment.author.isPostAuthor && (
+                                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                                  Author
+                                </span>
+                              )}
+                              {comment.isBestAnswer && (
+                                <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium flex items-center gap-1">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Best Answer
+                                </span>
+                              )}
+                              <span className="text-sm text-muted-foreground">
+                                {timeAgo(comment.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground leading-relaxed mb-3">
+                              {comment.content}
+                            </p>
+                            <div className="flex items-center gap-4">
+                              <button
+                                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                onClick={() =>
+                                  toggleCommentLike.mutate(comment.id)
+                                }
+                              >
+                                <ThumbsUp className="w-4 h-4" />
+                                <span>{comment.likeCount}</span>
+                              </button>
+                              <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors">
+                                <Reply className="w-4 h-4" />
+                                <span>Reply</span>
+                              </button>
+                              <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors">
+                                <Flag className="w-4 h-4" />
+                                <span>Report</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Nested Replies */}
+                        {comment.replies.length > 0 && (
+                          <div className="mt-6 ml-14 space-y-6">
+                            {comment.replies.map((reply) => (
+                              <div key={reply.id} className="flex gap-4">
+                                {reply.author.avatar ? (
+                                  <img
+                                    src={reply.author.avatar}
+                                    alt={reply.author.fullName}
+                                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                                  />
+                                ) : (
+                                  <div
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs flex-shrink-0 ${
+                                      reply.author.isPostAuthor
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-primary/10 text-primary"
+                                    }`}
+                                  >
+                                    {getInitials(reply.author.fullName)}
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                    <span className="font-medium text-foreground text-sm">
+                                      {reply.author.fullName}
+                                    </span>
+                                    {reply.author.isPostAuthor && (
+                                      <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                                        Author
+                                      </span>
+                                    )}
+                                    <span className="text-xs text-muted-foreground">
+                                      {timeAgo(reply.createdAt)}
+                                    </span>
+                                  </div>
+                                  <p className="text-muted-foreground text-sm leading-relaxed mb-2">
+                                    {reply.content}
+                                  </p>
+                                  <div className="flex items-center gap-4">
+                                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
+                                      <ThumbsUp className="w-3 h-3" />
+                                      <span>{reply.likeCount}</span>
+                                    </button>
+                                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
+                                      <Reply className="w-3 h-3" />
+                                      <span>Reply</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
 
                 {/* Load More Comments */}
@@ -474,38 +526,46 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                   About the Author
                 </h3>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-xl">
-                    {post.avatar}
-                  </div>
+                  {post.author.avatar ? (
+                    <img
+                      src={post.author.avatar}
+                      alt={post.author.fullName}
+                      className="w-14 h-14 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-xl">
+                      {getInitials(post.author.fullName)}
+                    </div>
+                  )}
                   <div>
                     <p className="font-semibold text-foreground">
-                      {post.author}
+                      {post.author.fullName}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Member since 2020
+                      Member since{" "}
+                      {new Date(post.author.memberSince).getFullYear()}
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {post.authorBio}
-                </p>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="text-center p-3 rounded-lg bg-muted/50">
                     <p className="font-semibold text-foreground">
-                      {post.authorPosts}
+                      {post.author.postCount}
                     </p>
                     <p className="text-xs text-muted-foreground">Posts</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-muted/50">
                     <p className="font-semibold text-foreground">
-                      {post.authorReputation.toLocaleString()}
+                      {post.replyCount}
                     </p>
-                    <p className="text-xs text-muted-foreground">Reputation</p>
+                    <p className="text-xs text-muted-foreground">Replies</p>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full">
-                  View Profile
-                </Button>
+                <Link to={`/farmers/${post.author.id}`}>
+                  <Button variant="outline" className="w-full">
+                    View Profile
+                  </Button>
+                </Link>
               </div>
 
               {/* Post Stats */}
@@ -520,7 +580,7 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                       Views
                     </span>
                     <span className="font-medium text-foreground">
-                      {post.views.toLocaleString()}
+                      {post.viewCount.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -529,7 +589,7 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                       Likes
                     </span>
                     <span className="font-medium text-foreground">
-                      {post.likes}
+                      {post.likeCount}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -538,7 +598,7 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                       Replies
                     </span>
                     <span className="font-medium text-foreground">
-                      {post.replies}
+                      {post.replyCount}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -547,7 +607,7 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                       Posted
                     </span>
                     <span className="font-medium text-foreground">
-                      {post.timeAgo}
+                      {timeAgo(post.createdAt)}
                     </span>
                   </div>
                 </div>
@@ -559,7 +619,7 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                   Related Discussions
                 </h3>
                 <div className="space-y-4">
-                  {relatedPosts.map((related) => (
+                  {(post.relatedPosts ?? []).map((related) => (
                     <Link
                       key={related.id}
                       to={`/forum/${related.id}`}
@@ -573,10 +633,10 @@ Feel free to ask any questions! I'm happy to share more details about specific a
                         <span>•</span>
                         <span className="flex items-center gap-1">
                           <MessageCircle className="w-3 h-3" />
-                          {related.replies}
+                          {related.replyCount}
                         </span>
                         <span>•</span>
-                        <span>{related.timeAgo}</span>
+                        <span>{timeAgo(related.createdAt)}</span>
                       </div>
                     </Link>
                   ))}

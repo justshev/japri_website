@@ -1,14 +1,18 @@
-import { createContext, useState, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from "react";
+import { authApi } from "@/lib/api/auth";
+import { usersApi } from "@/lib/api/users";
+import type { UserProfile, Session } from "@/lib/api/types";
 
-export interface UserProfile {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  avatar?: string;
-  isFarmer: boolean;
-  createdAt: string;
-}
+export type { UserProfile };
+
+const SESSION_KEY = "fungifarm_session";
+const USER_KEY = "fungifarm_user";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -27,63 +31,75 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export { AuthContext };
 
-const STORAGE_KEY = "fungifarm_user";
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    } finally {
-      setIsLoading(false);
-    }
+  // Helper: persist session & user
+  const persistAuth = useCallback((session: Session, profile: UserProfile) => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    localStorage.setItem(USER_KEY, JSON.stringify(profile));
+    setUser(profile);
   }, []);
 
-  // Persist user to localStorage
+  const clearAuth = useCallback(() => {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(USER_KEY);
+    setUser(null);
+  }, []);
+
+  // Bootstrap: restore user from localStorage, then verify with /users/me
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, [user]);
+    const bootstrap = async () => {
+      try {
+        const storedUser = localStorage.getItem(USER_KEY);
+        const storedSession = localStorage.getItem(SESSION_KEY);
 
-  const login = async (email: string, _password: string): Promise<boolean> => {
-    // Simulate API call — replace with Supabase auth later
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Check if there's an existing user with that email in localStorage
-        const storedUsers = JSON.parse(
-          localStorage.getItem("fungifarm_users") || "[]",
-        ) as UserProfile[];
-        const existingUser = storedUsers.find((u) => u.email === email);
+        if (storedUser && storedSession) {
+          // Optimistically set user from cache
+          setUser(JSON.parse(storedUser));
 
-        if (existingUser) {
-          setUser(existingUser);
-          resolve(true);
-        } else {
-          // For demo: create a user on login anyway
-          const newUser: UserProfile = {
-            id: crypto.randomUUID(),
-            fullName: email.split("@")[0],
-            email,
-            phone: "",
-            isFarmer: false,
-            createdAt: new Date().toISOString(),
-          };
-          setUser(newUser);
-          resolve(true);
+          // Verify session is still valid
+          try {
+            const res = await usersApi.getMe();
+            if (res.success && res.data) {
+              const profile: UserProfile = {
+                id: res.data.id,
+                fullName: res.data.fullName,
+                email: res.data.email,
+                phone: res.data.phone ?? "",
+                avatar: res.data.avatar ?? undefined,
+                isFarmer: res.data.isFarmer,
+                createdAt: res.data.createdAt,
+              };
+              localStorage.setItem(USER_KEY, JSON.stringify(profile));
+              setUser(profile);
+            }
+          } catch {
+            // Token expired / invalid — interceptor will handle refresh or clear
+          }
         }
-      }, 1000);
-    });
+      } catch {
+        clearAuth();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    bootstrap();
+  }, [clearAuth]);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const res = await authApi.login({ email, password });
+      if (res.success && res.data) {
+        persistAuth(res.data.session, res.data.user);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   };
 
   const register = async (data: {
@@ -92,50 +108,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     phone: string;
     password: string;
   }): Promise<boolean> => {
-    // Simulate API call — replace with Supabase auth later
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newUser: UserProfile = {
-          id: crypto.randomUUID(),
-          fullName: data.fullName,
-          email: data.email,
-          phone: data.phone,
-          isFarmer: false,
-          createdAt: new Date().toISOString(),
-        };
-
-        // Store in users list for later login lookup
-        const storedUsers = JSON.parse(
-          localStorage.getItem("fungifarm_users") || "[]",
-        ) as UserProfile[];
-        storedUsers.push(newUser);
-        localStorage.setItem("fungifarm_users", JSON.stringify(storedUsers));
-
-        setUser(newUser);
-        resolve(true);
-      }, 1000);
-    });
+    try {
+      const res = await authApi.register(data);
+      if (res.success && res.data) {
+        persistAuth(res.data.session, res.data.user);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // ignore error on logout
+    } finally {
+      clearAuth();
+    }
   };
 
   const updateUser = (updates: Partial<UserProfile>) => {
     setUser((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, ...updates };
-
-      // Also update in users list
-      const storedUsers = JSON.parse(
-        localStorage.getItem("fungifarm_users") || "[]",
-      ) as UserProfile[];
-      const idx = storedUsers.findIndex((u) => u.id === updated.id);
-      if (idx !== -1) {
-        storedUsers[idx] = updated;
-        localStorage.setItem("fungifarm_users", JSON.stringify(storedUsers));
-      }
-
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
       return updated;
     });
   };

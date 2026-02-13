@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Send,
   Phone,
@@ -17,7 +18,16 @@ import {
   ArrowLeft,
   Image as ImageIcon,
   Paperclip,
+  MessageCircle,
 } from "lucide-react";
+import {
+  useConversations,
+  useMessages,
+  useSendMessage,
+  useMarkAsRead,
+  useCreateConversation,
+} from "@/hooks/use-chat";
+import { useAuth } from "@/hooks/use-auth";
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
@@ -25,83 +35,90 @@ const Chat = () => {
   const productId = searchParams.get("product");
   const [message, setMessage] = useState("");
   const [showSafetyTips, setShowSafetyTips] = useState(true);
+  const [activeConversationId, setActiveConversationId] = useState<string>("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
-  // Sample data (in real app, fetch based on params)
-  const seller = {
-    id: 1,
-    name: "Farm Jamur Makmur",
-    avatar: "FJ",
-    isVerified: true,
-    isOnline: true,
-    lastSeen: "Online",
-    phone: "+62 812-3456-7890",
+  const { data: convsRes, isLoading: convsLoading } = useConversations();
+  const { data: msgsRes } = useMessages(activeConversationId);
+  const sendMsg = useSendMessage(activeConversationId);
+  const markAsRead = useMarkAsRead(activeConversationId);
+  const createConversation = useCreateConversation();
+
+  const conversations = convsRes?.data ?? [];
+  const messages_list = msgsRes?.data?.messages ?? [];
+
+  // Auto-select first conversation or create one if coming from product page
+  useEffect(() => {
+    if (sellerId && !activeConversationId) {
+      createConversation.mutate(
+        { participantId: sellerId, productId: productId || undefined },
+        {
+          onSuccess: (res) => {
+            if (res?.data?.id) setActiveConversationId(res.data.id);
+          },
+        },
+      );
+    } else if (!activeConversationId && conversations.length > 0) {
+      setActiveConversationId(conversations[0].id);
+    }
+  }, [conversations, sellerId, productId, activeConversationId]);
+
+  // Mark as read when switching conversations
+  useEffect(() => {
+    if (activeConversationId) {
+      markAsRead.mutate();
+    }
+  }, [activeConversationId]);
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages_list]);
+
+  const activeConv = conversations.find((c) => c.id === activeConversationId);
+  const participant = activeConv?.participant;
+
+  const handleSend = () => {
+    if (!message.trim() || !activeConversationId) return;
+    sendMsg.mutate({ content: message.trim() });
+    setMessage("");
   };
 
-  const product = {
-    id: 1,
-    name: "Fresh Oyster Mushrooms - Premium Grade",
-    price: 35000,
-    image: "/placeholder-product.jpg",
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
-  const conversations = [
-    {
-      id: 1,
-      name: "Farm Jamur Makmur",
-      avatar: "FJ",
-      lastMessage: "Baik pak, stok masih tersedia. Mau pesan berapa kg?",
-      time: "10:30",
-      unread: 2,
-      isOnline: true,
-    },
-    {
-      id: 2,
-      name: "Bibit Unggul",
-      avatar: "BU",
-      lastMessage: "Terima kasih sudah order",
-      time: "Kemarin",
-      unread: 0,
-      isOnline: false,
-    },
-    {
-      id: 3,
-      name: "AgriTech Solutions",
-      avatar: "AS",
-      lastMessage: "Untuk humidity controller bisa kirim ke Bandung",
-      time: "2 hari lalu",
-      unread: 0,
-      isOnline: true,
-    },
-  ];
+  const timeAgo = (dateStr: string) => {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diff < 60) return "baru saja";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}j`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}h lalu`;
+    return date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+  };
 
-  const messages = [
-    {
-      id: 1,
-      senderId: "user",
-      text: "Halo, saya tertarik dengan jamur tiram premium. Apakah stok masih tersedia?",
-      time: "10:25",
-    },
-    {
-      id: 2,
-      senderId: "seller",
-      text: "Halo pak, selamat pagi! Stok masih banyak pak. Hari ini baru panen, fresh dari farm.",
-      time: "10:28",
-    },
-    {
-      id: 3,
-      senderId: "user",
-      text: "Bagus, saya mau pesan 5kg. Bisa dikirim ke Bandung?",
-      time: "10:29",
-    },
-    {
-      id: 4,
-      senderId: "seller",
-      text: "Baik pak, stok masih tersedia. Untuk 5kg totalnya Rp 175.000. Ongkir ke Bandung sekitar Rp 20.000 pakai JNE Reguler. Atau bisa COD kalau lokasi dekat.",
-      time: "10:30",
-    },
-  ];
+  const formatTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-  const safetyTips = [
+  const getInitials = (name: string) =>
+    name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+
+  const safetyTipItems = [
     {
       icon: Shield,
       title: "Verifikasi Penjual",
@@ -141,15 +158,6 @@ const Chat = () => {
     "Tidak mau video call untuk verifikasi",
   ];
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -181,7 +189,7 @@ const Chat = () => {
                       masing-masing pihak.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                      {safetyTips.map((tip, index) => (
+                      {safetyTipItems.map((tip, index) => (
                         <div key={index} className="flex items-start gap-2">
                           <tip.icon
                             className={`w-4 h-4 ${tip.color} flex-shrink-0 mt-0.5`}
@@ -213,158 +221,182 @@ const Chat = () => {
                 </h2>
               </div>
               <div className="flex-1 overflow-y-auto">
-                {conversations.map((conv) => (
-                  <button
-                    key={conv.id}
-                    className={`w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left ${
-                      conv.id === 1 ? "bg-muted/30" : ""
-                    }`}
-                  >
-                    <div className="relative">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary">
-                        {conv.avatar}
+                {convsLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="p-4 flex items-center gap-3">
+                      <Skeleton className="w-12 h-12 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-40" />
                       </div>
-                      {conv.isOnline && (
-                        <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-success border-2 border-card" />
+                    </div>
+                  ))
+                ) : conversations.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Belum ada percakapan</p>
+                  </div>
+                ) : (
+                  conversations.map((conv) => (
+                    <button
+                      key={conv.id}
+                      onClick={() => setActiveConversationId(conv.id)}
+                      className={`w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left ${
+                        conv.id === activeConversationId ? "bg-muted/30" : ""
+                      }`}
+                    >
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary overflow-hidden">
+                          {conv.participant?.avatar ? (
+                            <img
+                              src={conv.participant.avatar}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            getInitials(conv.participant?.fullName || "?")
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-foreground text-sm truncate">
+                            {conv.participant?.fullName || "Pengguna"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {conv.lastMessage
+                              ? timeAgo(conv.lastMessage.createdAt)
+                              : ""}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {conv.lastMessage?.content || "Belum ada pesan"}
+                        </p>
+                      </div>
+                      {conv.unreadCount > 0 && (
+                        <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                          {conv.unreadCount}
+                        </span>
                       )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-foreground text-sm truncate">
-                          {conv.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {conv.time}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {conv.lastMessage}
-                      </p>
-                    </div>
-                    {conv.unread > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                        {conv.unread}
-                      </span>
-                    )}
-                  </button>
-                ))}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 
             {/* Chat Area */}
             <div className="lg:col-span-2 rounded-2xl bg-card border border-border/50 overflow-hidden flex flex-col">
               {/* Chat Header */}
-              <div className="p-4 border-b border-border/50 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary">
-                      {seller.avatar}
+              {participant ? (
+                <div className="p-4 border-b border-border/50 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary overflow-hidden">
+                        {participant.avatar ? (
+                          <img
+                            src={participant.avatar}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          getInitials(participant.fullName)
+                        )}
+                      </div>
                     </div>
-                    {seller.isOnline && (
-                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-success border-2 border-card" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-foreground">
-                        {seller.name}
-                      </span>
-                      {seller.isVerified && (
-                        <CheckCircle className="w-4 h-4 text-success" />
-                      )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">
+                          {participant.fullName}
+                        </span>
+                        {participant.isVerified && (
+                          <CheckCircle className="w-4 h-4 text-success" />
+                        )}
+                      </div>
                     </div>
-                    <span className="text-xs text-success">
-                      {seller.lastSeen}
-                    </span>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a href={`tel:${seller.phone}`}>
+                  <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon">
-                      <Phone className="w-5 h-5" />
+                      <MoreVertical className="w-5 h-5" />
                     </Button>
-                  </a>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="w-5 h-5" />
-                  </Button>
+                  </div>
                 </div>
-              </div>
-
-              {/* Product Reference */}
-              {product && (
-                <div className="px-4 py-3 bg-muted/30 border-b border-border/50">
-                  <Link
-                    to={`/marketplace/${product.id}`}
-                    className="flex items-center gap-3 group"
-                  >
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center">
-                      <Package className="w-6 h-6 text-primary/50" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                        {product.name}
-                      </p>
-                      <p className="text-sm text-primary font-semibold">
-                        {formatPrice(product.price)}
-                      </p>
-                    </div>
-                  </Link>
+              ) : (
+                <div className="p-4 border-b border-border/50">
+                  <span className="text-muted-foreground text-sm">
+                    Pilih percakapan
+                  </span>
                 </div>
               )}
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex ${msg.senderId === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[75%] p-3 rounded-2xl ${
-                        msg.senderId === "user"
-                          ? "bg-primary text-primary-foreground rounded-br-md"
-                          : "bg-muted text-foreground rounded-bl-md"
-                      }`}
-                    >
-                      <p className="text-sm">{msg.text}</p>
-                      <p
-                        className={`text-xs mt-1 ${
-                          msg.senderId === "user"
-                            ? "text-primary-foreground/70"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {msg.time}
-                      </p>
+                {!activeConversationId ? (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <div className="text-center">
+                      <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                      <p>Pilih percakapan untuk mulai chat</p>
                     </div>
                   </div>
-                ))}
+                ) : messages_list.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <p className="text-sm">
+                      Belum ada pesan. Mulai percakapan!
+                    </p>
+                  </div>
+                ) : (
+                  messages_list.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.senderId === user?.id ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[75%] p-3 rounded-2xl ${
+                          msg.senderId === user?.id
+                            ? "bg-primary text-primary-foreground rounded-br-md"
+                            : "bg-muted text-foreground rounded-bl-md"
+                        }`}
+                      >
+                        <p className="text-sm">{msg.content}</p>
+                        <p
+                          className={`text-xs mt-1 ${
+                            msg.senderId === user?.id
+                              ? "text-primary-foreground/70"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {formatTime(msg.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input */}
               <div className="p-4 border-t border-border/50">
                 <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground"
-                  >
-                    <Paperclip className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground"
-                  >
-                    <ImageIcon className="w-5 h-5" />
-                  </Button>
                   <Input
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Ketik pesan..."
+                    onKeyDown={handleKeyDown}
+                    placeholder={
+                      activeConversationId
+                        ? "Ketik pesan..."
+                        : "Pilih percakapan..."
+                    }
                     className="flex-1"
+                    disabled={!activeConversationId}
                   />
-                  <Button size="icon" disabled={!message.trim()}>
+                  <Button
+                    size="icon"
+                    disabled={
+                      !message.trim() ||
+                      !activeConversationId ||
+                      sendMsg.isPending
+                    }
+                    onClick={handleSend}
+                  >
                     <Send className="w-5 h-5" />
                   </Button>
                 </div>
@@ -374,33 +406,41 @@ const Chat = () => {
             {/* Safety Tips Sidebar */}
             <div className="lg:col-span-1 space-y-6">
               {/* Seller Info */}
-              <div className="rounded-2xl bg-card border border-border/50 p-4">
-                <h3 className="font-semibold text-foreground mb-3">
-                  Info Penjual
-                </h3>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary">
-                    {seller.avatar}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium text-foreground">
-                        {seller.name}
-                      </span>
-                      {seller.isVerified && (
-                        <CheckCircle className="w-4 h-4 text-success" />
+              {participant && (
+                <div className="rounded-2xl bg-card border border-border/50 p-4">
+                  <h3 className="font-semibold text-foreground mb-3">
+                    Info Penjual
+                  </h3>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary overflow-hidden">
+                      {participant.avatar ? (
+                        <img
+                          src={participant.avatar}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        getInitials(participant.fullName)
                       )}
                     </div>
-                    <span className="text-xs text-success">Terverifikasi</span>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium text-foreground">
+                          {participant.fullName}
+                        </span>
+                        {participant.isVerified && (
+                          <CheckCircle className="w-4 h-4 text-success" />
+                        )}
+                      </div>
+                      {participant.isVerified && (
+                        <span className="text-xs text-success">
+                          Terverifikasi
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <a href={`tel:${seller.phone}`}>
-                  <Button variant="outline" size="sm" className="w-full gap-2">
-                    <Phone className="w-4 h-4" />
-                    {seller.phone}
-                  </Button>
-                </a>
-              </div>
+              )}
 
               {/* Scam Indicators */}
               <div className="rounded-2xl bg-destructive/5 border border-destructive/20 p-4">

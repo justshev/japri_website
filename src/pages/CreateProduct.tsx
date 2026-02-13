@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,19 @@ import {
   AlertTriangle,
   CheckCircle,
   GripVertical,
+  Loader2,
 } from "lucide-react";
+import { useCreateProduct } from "@/hooks/use-products";
+import { useUploadFile } from "@/hooks/use-upload";
+import { useToast } from "@/hooks/use-toast";
 
 const CreateProduct = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const createProduct = useCreateProduct();
+  const uploadFile = useUploadFile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [productName, setProductName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -78,11 +88,20 @@ const CreateProduct = () => {
     { value: "/unit", label: "per Unit (/unit)" },
   ];
 
-  const handleImageUpload = () => {
-    if (images.length < 8) {
-      const newImage = `/placeholder-product-${images.length + 1}.jpg`;
-      setImages([...images, newImage]);
+  const handleImageUpload = async () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || images.length >= 8) return;
+    try {
+      const result = await uploadFile.mutateAsync({ file, bucket: "products" });
+      setImages((prev) => [...prev, result.data.url]);
+    } catch {
+      toast({ title: "Gagal upload foto", variant: "destructive" });
     }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleRemoveImage = (index: number) => {
@@ -107,24 +126,37 @@ const CreateProduct = () => {
     setSpecifications(updated);
   };
 
-  const handleSubmit = (isDraft: boolean) => {
-    console.log({
-      productName,
-      description,
-      category,
-      condition,
-      price,
-      originalPrice,
-      unit,
-      stock,
-      minOrder,
-      weight,
-      images,
-      specifications: specifications.filter((s) => s.label && s.value),
-      location,
-      whatsapp,
-      isDraft,
-    });
+  const handleSubmit = async (isDraft: boolean) => {
+    const parsedPrice = parseInt(price.replace(/\D/g, ""), 10);
+    const parsedOriginal = originalPrice
+      ? parseInt(originalPrice.replace(/\D/g, ""), 10)
+      : undefined;
+
+    try {
+      const result = await createProduct.mutateAsync({
+        name: productName,
+        description,
+        category,
+        condition,
+        price: parsedPrice,
+        originalPrice: parsedOriginal,
+        unit,
+        stock: parseInt(stock, 10),
+        minOrder: minOrder ? parseInt(minOrder, 10) : undefined,
+        weight: weight ? parseInt(weight, 10) : undefined,
+        images,
+        specifications: specifications.filter((s) => s.label && s.value),
+        location,
+        whatsapp,
+        isDraft,
+      });
+      toast({
+        title: isDraft ? "Draft disimpan" : "Produk berhasil dipublikasikan!",
+      });
+      navigate(`/marketplace/${result.data.id}`);
+    } catch {
+      toast({ title: "Gagal menyimpan produk", variant: "destructive" });
+    }
   };
 
   const formatPrice = (value: string) => {
@@ -181,7 +213,14 @@ const CreateProduct = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  {images.map((image, index) => (
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  {images.map((imageUrl, index) => (
                     <div
                       key={index}
                       className={`relative rounded-xl overflow-hidden bg-muted border-2 group cursor-move ${
@@ -190,9 +229,11 @@ const CreateProduct = () => {
                           : "w-24 h-24 border-border/50"
                       }`}
                     >
-                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                        <ImageIcon className="w-8 h-8 text-primary/30" />
-                      </div>
+                      <img
+                        src={imageUrl}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
                       {index === 0 && (
                         <span className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-xs py-1 text-center">
                           Foto Utama
@@ -216,10 +257,17 @@ const CreateProduct = () => {
                     <button
                       type="button"
                       onClick={handleImageUpload}
-                      className="w-24 h-24 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+                      disabled={uploadFile.isPending}
+                      className="w-24 h-24 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
                     >
-                      <Plus className="w-6 h-6" />
-                      <span className="text-xs">Tambah</span>
+                      {uploadFile.isPending ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <>
+                          <Plus className="w-6 h-6" />
+                          <span className="text-xs">Tambah</span>
+                        </>
+                      )}
                     </button>
                   )}
                 </div>
@@ -604,17 +652,26 @@ const CreateProduct = () => {
                 <Button
                   variant="outline"
                   className="gap-2"
+                  disabled={createProduct.isPending}
                   onClick={() => handleSubmit(true)}
                 >
-                  <Save className="w-4 h-4" />
+                  {createProduct.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
                   Simpan Draft
                 </Button>
                 <Button
                   className="gap-2 flex-1"
-                  disabled={!isFormValid}
+                  disabled={!isFormValid || createProduct.isPending}
                   onClick={() => handleSubmit(false)}
                 >
-                  <Send className="w-4 h-4" />
+                  {createProduct.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                   Publikasikan Produk
                 </Button>
               </div>
@@ -629,9 +686,13 @@ const CreateProduct = () => {
                     Preview Produk
                   </h3>
                   <div className="rounded-xl border border-border/50 overflow-hidden">
-                    <div className="aspect-square bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center">
+                    <div className="aspect-square bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center overflow-hidden">
                       {images.length > 0 ? (
-                        <ImageIcon className="w-12 h-12 text-primary/30" />
+                        <img
+                          src={images[0]}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <div className="text-center text-muted-foreground">
                           <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-30" />

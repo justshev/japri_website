@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -34,16 +34,161 @@ import {
   Plus,
   Info,
   Shield,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useCreateFarmer } from "@/hooks/use-farmers";
+import { useCommunityStats } from "@/hooks/use-community";
+import { useUploadFile } from "@/hooks/use-upload";
+import { useToast } from "@/hooks/use-toast";
 
 const RegisterFarmer = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const createFarmer = useCreateFarmer();
+  const uploadFile = useUploadFile();
+  const { data: statsData } = useCommunityStats();
+  const stats = statsData?.data;
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [whatsapp, setWhatsapp] = useState(user?.phone || "");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [region, setRegion] = useState("");
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
+  const [website, setWebsite] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [experience, setExperience] = useState("");
+  const [farmSize, setFarmSize] = useState("");
+  const [bio, setBio] = useState("");
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [isMentor, setIsMentor] = useState(false);
+  const [isPartner, setIsPartner] = useState(false);
+  const [isConsultant, setIsConsultant] = useState(false);
+  const [certifications, setCertifications] = useState<
+    Array<{ name: string; issuer: string; year: string }>
+  >([{ name: "", issuer: "", year: "" }]);
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [instagram, setInstagram] = useState("");
+  const [youtube, setYoutube] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await uploadFile.mutateAsync({ file, bucket: "avatars" });
+      setAvatarUrl(res.data.url);
+    } catch {
+      toast({ title: "Gagal upload foto", variant: "destructive" });
+    }
+  };
+
+  const handleGalleryUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = e.target.files;
+    if (!files) return;
+    for (const file of Array.from(files)) {
+      try {
+        const res = await uploadFile.mutateAsync({ file, bucket: "gallery" });
+        setGalleryUrls((prev) => [...prev, res.data.url]);
+      } catch {
+        toast({
+          title: `Gagal upload ${file.name}`,
+          variant: "destructive",
+        });
+      }
+    }
+    if (galleryInputRef.current) galleryInputRef.current.value = "";
+  };
+
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill],
+    );
+  };
+
+  const addCertification = () =>
+    setCertifications((prev) => [...prev, { name: "", issuer: "", year: "" }]);
+
+  const updateCertification = (
+    index: number,
+    field: "name" | "issuer" | "year",
+    value: string,
+  ) => {
+    setCertifications((prev) =>
+      prev.map((cert, i) => (i === index ? { ...cert, [field]: value } : cert)),
+    );
+  };
+
+  const removeCertification = (index: number) =>
+    setCertifications((prev) => prev.filter((_, i) => i !== index));
+
+  const handleSubmit = async () => {
+    if (
+      !fullName ||
+      !email ||
+      !phone ||
+      !whatsapp ||
+      !region ||
+      !city ||
+      !specialty ||
+      !experience ||
+      !bio
+    ) {
+      toast({
+        title: "Mohon lengkapi semua field yang wajib (*)",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!termsAccepted) {
+      toast({
+        title: "Anda harus menyetujui syarat dan ketentuan",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      const validCerts = certifications.filter(
+        (c) => c.name && c.issuer && c.year,
+      );
+      const res = await createFarmer.mutateAsync({
+        fullName,
+        email,
+        phone,
+        whatsapp,
+        region,
+        city,
+        address: address || undefined,
+        specialty,
+        experience,
+        bio,
+        website: website || undefined,
+        farmSize: farmSize || undefined,
+        isMentor,
+        isPartner,
+        isConsultant,
+        skills: selectedSkills.length > 0 ? selectedSkills : undefined,
+        certifications: validCerts.length > 0 ? validCerts : undefined,
+        instagram: instagram || undefined,
+        youtube: youtube || undefined,
+        facebook: facebook || undefined,
+      });
+      toast({ title: "Pendaftaran berhasil!" });
+      navigate(`/farmers/${res.data.id}`);
+    } catch {
+      toast({ title: "Gagal mendaftar, coba lagi", variant: "destructive" });
+    }
+  };
 
   const specialties = [
     "Jamur Tiram",
@@ -205,14 +350,41 @@ const RegisterFarmer = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="photo">Foto Profil</Label>
-                    <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                      <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Klik untuk upload atau drag & drop
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        PNG, JPG (Maks. 2MB)
-                      </p>
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                    />
+                    <div
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                    >
+                      {avatarUrl ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <img
+                            src={avatarUrl}
+                            alt="Avatar"
+                            className="w-20 h-20 rounded-full object-cover"
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Klik untuk ganti foto
+                          </p>
+                        </div>
+                      ) : uploadFile.isPending ? (
+                        <Loader2 className="w-8 h-8 text-primary mx-auto mb-3 animate-spin" />
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                          <p className="text-sm text-muted-foreground mb-1">
+                            Klik untuk upload atau drag & drop
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            PNG, JPG (Maks. 2MB)
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -238,17 +410,14 @@ const RegisterFarmer = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="region">Provinsi *</Label>
-                      <Select>
+                      <Select value={region} onValueChange={setRegion}>
                         <SelectTrigger>
                           <SelectValue placeholder="Pilih provinsi" />
                         </SelectTrigger>
                         <SelectContent>
-                          {regions.map((region) => (
-                            <SelectItem
-                              key={region}
-                              value={region.toLowerCase().replace(/\s+/g, "-")}
-                            >
-                              {region}
+                          {regions.map((r) => (
+                            <SelectItem key={r} value={r}>
+                              {r}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -256,7 +425,12 @@ const RegisterFarmer = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="city">Kota/Kabupaten *</Label>
-                      <Input id="city" placeholder="Contoh: Bandung" />
+                      <Input
+                        id="city"
+                        placeholder="Contoh: Bandung"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                      />
                     </div>
                   </div>
 
@@ -266,12 +440,19 @@ const RegisterFarmer = () => {
                       id="address"
                       placeholder="Masukkan alamat lengkap farm Anda"
                       className="min-h-[100px]"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="website">Website (Opsional)</Label>
-                    <Input id="website" placeholder="www.contoh.com" />
+                    <Input
+                      id="website"
+                      placeholder="www.contoh.com"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                    />
                   </div>
                 </div>
               </div>
@@ -296,19 +477,14 @@ const RegisterFarmer = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="specialty">Spesialisasi *</Label>
-                      <Select>
+                      <Select value={specialty} onValueChange={setSpecialty}>
                         <SelectTrigger>
                           <SelectValue placeholder="Pilih jenis jamur" />
                         </SelectTrigger>
                         <SelectContent>
-                          {specialties.map((specialty) => (
-                            <SelectItem
-                              key={specialty}
-                              value={specialty
-                                .toLowerCase()
-                                .replace(/\s+/g, "-")}
-                            >
-                              {specialty}
+                          {specialties.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -316,16 +492,13 @@ const RegisterFarmer = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="experience">Lama Pengalaman *</Label>
-                      <Select>
+                      <Select value={experience} onValueChange={setExperience}>
                         <SelectTrigger>
                           <SelectValue placeholder="Pilih pengalaman" />
                         </SelectTrigger>
                         <SelectContent>
                           {experienceOptions.map((exp) => (
-                            <SelectItem
-                              key={exp}
-                              value={exp.toLowerCase().replace(/\s+/g, "-")}
-                            >
+                            <SelectItem key={exp} value={exp}>
                               {exp}
                             </SelectItem>
                           ))}
@@ -338,7 +511,12 @@ const RegisterFarmer = () => {
                     <Label htmlFor="farmSize">
                       Luas Area Produksi (Opsional)
                     </Label>
-                    <Input id="farmSize" placeholder="Contoh: 500 m²" />
+                    <Input
+                      id="farmSize"
+                      placeholder="Contoh: 500 m²"
+                      value={farmSize}
+                      onChange={(e) => setFarmSize(e.target.value)}
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -347,6 +525,8 @@ const RegisterFarmer = () => {
                       id="bio"
                       placeholder="Ceritakan tentang diri Anda, pengalaman, dan keahlian dalam budidaya jamur..."
                       className="min-h-[150px]"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
                     />
                   </div>
 
@@ -369,6 +549,8 @@ const RegisterFarmer = () => {
                         >
                           <Checkbox
                             id={skill.toLowerCase().replace(/\s+/g, "-")}
+                            checked={selectedSkills.includes(skill)}
+                            onCheckedChange={() => toggleSkill(skill)}
                           />
                           <Label
                             htmlFor={skill.toLowerCase().replace(/\s+/g, "-")}
@@ -402,7 +584,12 @@ const RegisterFarmer = () => {
                 <div className="space-y-6">
                   <div className="space-y-3">
                     <div className="flex items-start space-x-3 p-4 rounded-xl border border-border/50 hover:border-primary/30 transition-colors">
-                      <Checkbox id="mentor" className="mt-1" />
+                      <Checkbox
+                        id="mentor"
+                        className="mt-1"
+                        checked={isMentor}
+                        onCheckedChange={(v) => setIsMentor(!!v)}
+                      />
                       <div className="flex-1">
                         <Label
                           htmlFor="mentor"
@@ -420,7 +607,12 @@ const RegisterFarmer = () => {
                     </div>
 
                     <div className="flex items-start space-x-3 p-4 rounded-xl border border-border/50 hover:border-primary/30 transition-colors">
-                      <Checkbox id="partner" className="mt-1" />
+                      <Checkbox
+                        id="partner"
+                        className="mt-1"
+                        checked={isPartner}
+                        onCheckedChange={(v) => setIsPartner(!!v)}
+                      />
                       <div className="flex-1">
                         <Label
                           htmlFor="partner"
@@ -439,7 +631,12 @@ const RegisterFarmer = () => {
                     </div>
 
                     <div className="flex items-start space-x-3 p-4 rounded-xl border border-border/50 hover:border-primary/30 transition-colors">
-                      <Checkbox id="consultation" className="mt-1" />
+                      <Checkbox
+                        id="consultation"
+                        className="mt-1"
+                        checked={isConsultant}
+                        onCheckedChange={(v) => setIsConsultant(!!v)}
+                      />
                       <div className="flex-1">
                         <Label
                           htmlFor="consultation"
@@ -477,27 +674,65 @@ const RegisterFarmer = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="certName1">Nama Sertifikat</Label>
-                        <Input id="certName1" placeholder="Nama sertifikat" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="certIssuer1">Penerbit</Label>
-                        <Input
-                          id="certIssuer1"
-                          placeholder="Lembaga penerbit"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="certYear1">Tahun</Label>
-                        <Input id="certYear1" placeholder="2024" />
+                  {certifications.map((cert, index) => (
+                    <div
+                      key={index}
+                      className="p-4 rounded-xl bg-muted/30 border border-border/50 relative"
+                    >
+                      {certifications.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeCertification(index)}
+                          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>Nama Sertifikat</Label>
+                          <Input
+                            placeholder="Nama sertifikat"
+                            value={cert.name}
+                            onChange={(e) =>
+                              updateCertification(index, "name", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Penerbit</Label>
+                          <Input
+                            placeholder="Lembaga penerbit"
+                            value={cert.issuer}
+                            onChange={(e) =>
+                              updateCertification(
+                                index,
+                                "issuer",
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Tahun</Label>
+                          <Input
+                            placeholder="2024"
+                            value={cert.year}
+                            onChange={(e) =>
+                              updateCertification(index, "year", e.target.value)
+                            }
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
 
-                  <Button variant="outline" className="w-full gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full gap-2"
+                    onClick={addCertification}
+                  >
                     + Tambah Sertifikat Lain
                   </Button>
                 </div>
@@ -526,34 +761,58 @@ const RegisterFarmer = () => {
                     percaya dengan profil Anda.
                   </p>
 
+                  <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleGalleryUpload}
+                  />
+
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {/* Uploaded photos placeholder */}
-                    {[1, 2, 3].map((index) => (
+                    {galleryUrls.map((url, index) => (
                       <div
                         key={index}
                         className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border/50 group"
                       >
-                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-primary/30" />
-                        </div>
+                        <img
+                          src={url}
+                          alt={`Foto ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
                         <button
                           type="button"
+                          onClick={() =>
+                            setGalleryUrls((prev) =>
+                              prev.filter((_, i) => i !== index),
+                            )
+                          }
                           className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="w-3 h-3" />
                         </button>
                         <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-black/50 text-white text-xs">
-                          Foto {index}
+                          Foto {index + 1}
                         </div>
                       </div>
                     ))}
 
                     {/* Upload button */}
-                    <div className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors">
-                      <Plus className="w-8 h-8 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        Tambah Foto
-                      </span>
+                    <div
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors"
+                    >
+                      {uploadFile.isPending ? (
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                      ) : (
+                        <>
+                          <Plus className="w-8 h-8 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            Tambah Foto
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -576,7 +835,12 @@ const RegisterFarmer = () => {
               <div className="rounded-2xl bg-card border border-border/50 p-6 sm:p-8">
                 <div className="space-y-6">
                   <div className="flex items-start space-x-3">
-                    <Checkbox id="terms" className="mt-1" />
+                    <Checkbox
+                      id="terms"
+                      className="mt-1"
+                      checked={termsAccepted}
+                      onCheckedChange={(v) => setTermsAccepted(!!v)}
+                    />
                     <Label
                       htmlFor="terms"
                       className="text-sm font-normal cursor-pointer leading-relaxed"
@@ -601,9 +865,20 @@ const RegisterFarmer = () => {
                     </Label>
                   </div>
 
-                  <Button size="lg" className="w-full gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    Daftar Sekarang
+                  <Button
+                    size="lg"
+                    className="w-full gap-2"
+                    onClick={handleSubmit}
+                    disabled={createFarmer.isPending || !termsAccepted}
+                  >
+                    {createFarmer.isPending ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5" />
+                    )}
+                    {createFarmer.isPending
+                      ? "Mendaftar..."
+                      : "Daftar Sekarang"}
                   </Button>
                 </div>
               </div>
@@ -711,27 +986,35 @@ const RegisterFarmer = () => {
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <p className="text-2xl font-bold">2,847</p>
+                      <p className="text-2xl font-bold">
+                        {stats?.totalMembers?.toLocaleString() ?? "—"}
+                      </p>
                       <p className="text-xs text-primary-foreground/80">
                         Petani Terdaftar
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold">423</p>
+                      <p className="text-2xl font-bold">
+                        {stats?.verifiedSellers?.toLocaleString() ?? "—"}
+                      </p>
                       <p className="text-xs text-primary-foreground/80">
                         Mentor Aktif
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold">1,234</p>
+                      <p className="text-2xl font-bold">
+                        {stats?.regionsCovered ?? "—"}
+                      </p>
                       <p className="text-xs text-primary-foreground/80">
-                        Kerjasama Sukses
+                        Provinsi
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold">34</p>
+                      <p className="text-2xl font-bold">
+                        {stats?.newThisMonth ?? "—"}
+                      </p>
                       <p className="text-xs text-primary-foreground/80">
-                        Provinsi
+                        Baru Bulan Ini
                       </p>
                     </div>
                   </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,18 @@ import {
   Heading2,
   Info,
   Lightbulb,
+  Loader2,
 } from "lucide-react";
+import { useCreatePost } from "@/hooks/use-forum";
+import { useUploadFile } from "@/hooks/use-upload";
+import { useToast } from "@/hooks/use-toast";
 
 const CreatePost = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const createPost = useCreatePost();
+  const uploadFile = useUploadFile();
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
@@ -85,27 +94,60 @@ const CreatePost = () => {
   };
 
   const handleImageUpload = () => {
-    // In real app, this would open file picker and upload
-    const newImage = `/placeholder-image-${images.length + 1}.jpg`;
-    if (images.length < 5) {
-      setImages([...images, newImage]);
-    }
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/webp";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file || images.length >= 5) return;
+      try {
+        const res = await uploadFile.mutateAsync({ file, bucket: "forum" });
+        if (res.data?.url) {
+          setImages((prev) => [...prev, res.data!.url]);
+        }
+      } catch {
+        toast({
+          title: "Upload gagal",
+          description: "Gagal mengupload gambar. Coba lagi.",
+          variant: "destructive",
+        });
+      }
+    };
+    input.click();
   };
 
   const handleRemoveImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (isDraft: boolean) => {
-    // In real app, this would submit to API
-    console.log({
-      title,
-      content,
-      category,
-      tags,
-      images,
-      isDraft,
-    });
+  const handleSubmit = async (isDraft: boolean) => {
+    try {
+      const res = await createPost.mutateAsync({
+        title,
+        content,
+        category,
+        tags,
+        images,
+        isDraft,
+      });
+      toast({
+        title: isDraft ? "Draft tersimpan!" : "Diskusi dipublikasikan!",
+        description: isDraft
+          ? "Draft Anda telah disimpan."
+          : "Diskusi Anda telah dipublikasikan ke forum.",
+      });
+      if (res.data?.id) {
+        navigate(`/forum/${res.data.id}`);
+      } else {
+        navigate("/forum");
+      }
+    } catch {
+      toast({
+        title: "Gagal",
+        description: "Terjadi kesalahan saat mempublikasikan diskusi.",
+        variant: "destructive",
+      });
+    }
   };
 
   const insertMarkdown = (syntax: string) => {
@@ -318,9 +360,11 @@ Tips:
                         key={index}
                         className="relative w-24 h-24 rounded-xl overflow-hidden bg-muted border border-border/50 group"
                       >
-                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-primary/30" />
-                        </div>
+                        <img
+                          src={image}
+                          alt={`Upload ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(index)}
@@ -334,10 +378,17 @@ Tips:
                       <button
                         type="button"
                         onClick={handleImageUpload}
+                        disabled={uploadFile.isPending}
                         className="w-24 h-24 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
                       >
-                        <Plus className="w-6 h-6" />
-                        <span className="text-xs">Upload</span>
+                        {uploadFile.isPending ? (
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                        ) : (
+                          <>
+                            <Plus className="w-6 h-6" />
+                            <span className="text-xs">Upload</span>
+                          </>
+                        )}
                       </button>
                     )}
                   </div>
@@ -443,6 +494,7 @@ Tips:
                     variant="outline"
                     className="gap-2"
                     onClick={() => handleSubmit(true)}
+                    disabled={createPost.isPending}
                   >
                     <Save className="w-4 h-4" />
                     Simpan Draft
@@ -454,11 +506,16 @@ Tips:
                       !content ||
                       !category ||
                       !agreeToRules ||
-                      content.length < 50
+                      content.length < 50 ||
+                      createPost.isPending
                     }
                     onClick={() => handleSubmit(false)}
                   >
-                    <Send className="w-4 h-4" />
+                    {createPost.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
                     Publikasikan Diskusi
                   </Button>
                 </div>

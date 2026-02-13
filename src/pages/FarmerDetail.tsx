@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   MapPin,
@@ -26,179 +27,84 @@ import {
   Play,
   Camera,
 } from "lucide-react";
+import { useFarmer, useFarmerReviews } from "@/hooks/use-farmers";
 
 const FarmerDetail = () => {
   const { id } = useParams();
+  const { data: farmerRes, isLoading, error } = useFarmer(id || "");
+  const { data: reviewsRes } = useFarmerReviews(id || "");
 
-  // Sample farmer data (in real app, fetch based on id)
-  const farmer = {
-    id: 1,
-    name: "Pak Hendra Wijaya",
-    location: "Bandung, Jawa Barat",
-    address: "Jl. Dago Pakar No. 45, Cimenyan, Bandung",
-    avatar: "HW",
-    specialty: "Jamur Tiram",
-    experience: "15 tahun",
-    rating: 4.9,
-    reviews: 127,
-    isVerified: true,
-    isMentor: true,
-    isPartner: true,
-    bio: "Petani jamur profesional dengan pengalaman 15 tahun dalam industri budidaya jamur. Saya memulai perjalanan ini dari kebun kecil di belakang rumah, dan kini mengelola farm dengan kapasitas produksi 500kg jamur per minggu.",
-    fullBio: `Saya adalah petani jamur profesional yang telah berkecimpung di industri ini selama 15 tahun. Perjalanan saya dimulai dari sebuah kebun kecil di belakang rumah dengan modal awal hanya Rp 5 juta.
+  const farmer = farmerRes?.data;
+  const reviews = reviewsRes?.data?.reviews ?? [];
 
-Kini, saya mengelola FungiFarm Bandung dengan luas area produksi 2000m² dan kapasitas produksi mencapai 500kg jamur tiram per minggu. Kami juga memproduksi shiitake dan lion's mane dalam jumlah yang lebih kecil untuk pasar premium.
-
-Saya percaya bahwa berbagi ilmu adalah kunci kemajuan bersama. Itulah mengapa saya aktif sebagai mentor dan telah membantu lebih dari 150 petani pemula untuk memulai usaha mereka sendiri. Banyak dari mereka kini telah sukses dan mandiri.
-
-Saya terbuka untuk berbagai bentuk kerjasama, mulai dari:
-• Mentoring dan pelatihan untuk petani pemula
-• Kerjasama distribusi dan supply chain
-• Konsultasi setup farm dan optimasi produksi
-• Partnership investasi untuk ekspansi
-
-Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lanjut.`,
-    joinedDate: "Januari 2020",
-    lastActive: "2 jam yang lalu",
-    successStories: 45,
-    students: 156,
-    totalHarvest: "25,000+ kg",
-    farmSize: "2000 m²",
-    phone: "+62 812-3456-7890",
-    whatsapp: "+62 812-3456-7890",
-    email: "hendra.wijaya@fungifarm.id",
-    website: "www.fungifarm-bandung.com",
-    socialMedia: {
-      instagram: "@fungifarm_bandung",
-      youtube: "FungiFarm Bandung",
-      facebook: "FungiFarm Bandung Official",
-    },
-    skills: [
-      "Budidaya Jamur Tiram",
-      "Budidaya Shiitake",
-      "Manajemen Farm",
-      "Pelatihan & Mentoring",
-      "Setup Kumbung",
-      "Kontrol Hama",
-      "Pasca Panen",
-    ],
-    certifications: [
-      {
-        name: "Sertifikat Organik Indonesia",
-        issuer: "Lembaga Sertifikasi Organik",
-        year: "2023",
-      },
-      {
-        name: "Good Agricultural Practices (GAP)",
-        issuer: "Kementerian Pertanian",
-        year: "2022",
-      },
-      {
-        name: "Pelatih Budidaya Jamur Bersertifikat",
-        issuer: "Dinas Pertanian Jawa Barat",
-        year: "2021",
-      },
-    ],
-    gallery: [
-      {
-        url: "/placeholder-farm-1.jpg",
-        caption: "Area produksi utama",
-        type: "image",
-      },
-      {
-        url: "/placeholder-farm-2.jpg",
-        caption: "Proses panen jamur tiram",
-        type: "image",
-      },
-      {
-        url: "/placeholder-farm-3.jpg",
-        caption: "Sesi pelatihan dengan murid",
-        type: "image",
-      },
-      {
-        url: "/placeholder-farm-4.jpg",
-        caption: "Hasil panen berkualitas",
-        type: "image",
-      },
-      {
-        url: "/placeholder-farm-5.jpg",
-        caption: "Kumbung jamur modern",
-        type: "image",
-      },
-      {
-        url: "/placeholder-farm-6.jpg",
-        caption: "Tim kerja kami",
-        type: "image",
-      },
-      {
-        url: "/placeholder-video-1.jpg",
-        caption: "Video proses budidaya",
-        type: "video",
-      },
-      {
-        url: "/placeholder-farm-7.jpg",
-        caption: "Sertifikat dan penghargaan",
-        type: "image",
-      },
-    ],
+  const timeAgo = (dateStr: string) => {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diff < 60) return "baru saja";
+    if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)} hari lalu`;
+    if (diff < 2592000) return `${Math.floor(diff / 604800)} minggu lalu`;
+    return date.toLocaleDateString("id-ID");
   };
 
-  const reviews = [
-    {
-      id: 1,
-      author: "Bu Siti Rahayu",
-      avatar: "SR",
-      rating: 5,
-      date: "2 minggu lalu",
-      content:
-        "Pak Hendra adalah mentor yang sangat sabar dan berpengalaman. Berkat bimbingannya, saya berhasil memulai usaha jamur saya sendiri. Sangat direkomendasikan!",
-    },
-    {
-      id: 2,
-      author: "Mas Dodi Pratama",
-      avatar: "DP",
-      rating: 5,
-      date: "1 bulan lalu",
-      content:
-        "Kerjasama bisnis dengan Pak Hendra sangat profesional. Supply jamur selalu tepat waktu dan kualitas konsisten. Partner bisnis yang bisa diandalkan.",
-    },
-    {
-      id: 3,
-      author: "Ibu Maya",
-      avatar: "IM",
-      rating: 4,
-      date: "1 bulan lalu",
-      content:
-        "Pelatihannya sangat komprehensif. Dari teori sampai praktik langsung di farm. Worth every penny!",
-    },
-  ];
+  const getInitials = (name: string) =>
+    name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
 
-  const services = [
-    {
-      icon: GraduationCap,
-      title: "Mentoring Pemula",
-      description: "Program pendampingan 3 bulan untuk petani pemula",
-      price: "Rp 5.000.000",
-    },
-    {
-      icon: Briefcase,
-      title: "Konsultasi Bisnis",
-      description: "Konsultasi setup farm dan optimasi produksi",
-      price: "Rp 500.000/sesi",
-    },
-    {
-      icon: Handshake,
-      title: "Kerjasama Distribusi",
-      description: "Partnership supply jamur untuk reseller/restoran",
-      price: "Nego",
-    },
-    {
-      icon: Users,
-      title: "Pelatihan Kelompok",
-      description: "Workshop budidaya jamur untuk 10-20 orang",
-      price: "Rp 2.000.000/orang",
-    },
-  ];
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(price);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-16">
+          <div className="section-container">
+            <Skeleton className="h-5 w-48 mb-6" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <Skeleton className="h-64 rounded-2xl" />
+                <Skeleton className="h-48 rounded-2xl" />
+              </div>
+              <Skeleton className="h-96 rounded-2xl" />
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !farmer) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-16">
+          <div className="section-container text-center py-20">
+            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-2">Petani Tidak Ditemukan</h1>
+            <p className="text-muted-foreground mb-6">
+              Profil petani tidak ada atau telah dihapus.
+            </p>
+            <Link to="/farmers">
+              <Button>Kembali ke Daftar Petani</Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -231,8 +137,16 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                 <div className="p-6 sm:p-8 relative">
                   <div className="flex flex-col sm:flex-row gap-6">
                     {/* Avatar */}
-                    <div className="w-28 h-28 rounded-2xl bg-primary/10 border-4 border-card flex items-center justify-center font-bold text-primary text-3xl flex-shrink-0 relative -mt-20 sm:-mt-24 shadow-lg z-10">
-                      {farmer.avatar}
+                    <div className="w-28 h-28 rounded-2xl bg-primary/10 border-4 border-card flex items-center justify-center font-bold text-primary text-3xl flex-shrink-0 relative -mt-20 sm:-mt-24 shadow-lg z-10 overflow-hidden">
+                      {farmer.avatar ? (
+                        <img
+                          src={farmer.avatar}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        getInitials(farmer.fullName)
+                      )}
                       {farmer.isVerified && (
                         <CheckCircle className="absolute -bottom-2 -right-2 w-8 h-8 text-success fill-success-foreground stroke-success" />
                       )}
@@ -242,7 +156,7 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                       <div className="flex flex-wrap items-start justify-between gap-4 mb-3">
                         <div>
                           <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-2">
-                            {farmer.name}
+                            {farmer.fullName}
                           </h1>
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <MapPin className="w-4 h-4" />
@@ -295,21 +209,23 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                             {farmer.rating}
                           </span>
                           <span className="text-muted-foreground">
-                            ({farmer.reviews} ulasan)
+                            ({farmer.reviewCount} ulasan)
                           </span>
                         </span>
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <Briefcase className="w-4 h-4" />
-                          {farmer.experience}
+                          {farmer.experience} tahun
                         </span>
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <Users className="w-4 h-4" />
-                          {farmer.students} murid
+                          {farmer.studentCount} murid
                         </span>
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          Aktif {farmer.lastActive}
-                        </span>
+                        {farmer.lastActiveAt && (
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            Aktif {timeAgo(farmer.lastActiveAt)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -322,14 +238,16 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                   Tentang Saya
                 </h2>
                 <div className="prose prose-neutral dark:prose-invert max-w-none">
-                  {farmer.fullBio.split("\n\n").map((paragraph, index) => (
-                    <p
-                      key={index}
-                      className="text-muted-foreground leading-relaxed mb-4"
-                    >
-                      {paragraph}
-                    </p>
-                  ))}
+                  {(farmer.fullBio || farmer.bio || "")
+                    .split("\n\n")
+                    .map((paragraph, index) => (
+                      <p
+                        key={index}
+                        className="text-muted-foreground leading-relaxed mb-4"
+                      >
+                        {paragraph}
+                      </p>
+                    ))}
                 </div>
               </div>
 
@@ -338,27 +256,40 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                 <h2 className="font-display text-xl font-semibold text-foreground mb-6">
                   Layanan yang Ditawarkan
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {services.map((service, index) => (
-                    <div
-                      key={index}
-                      className="p-5 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/30 transition-colors"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                        <service.icon className="w-5 h-5 text-primary" />
-                      </div>
-                      <h3 className="font-semibold text-foreground mb-1">
-                        {service.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {service.description}
-                      </p>
-                      <p className="text-sm font-semibold text-primary">
-                        {service.price}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                {farmer.services.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    Belum ada layanan yang ditawarkan.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {farmer.services
+                      .filter((s) => s.isActive)
+                      .map((service) => (
+                        <div
+                          key={service.id}
+                          className="p-5 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/30 transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                            <Briefcase className="w-5 h-5 text-primary" />
+                          </div>
+                          <h3 className="font-semibold text-foreground mb-1">
+                            {service.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {service.description || ""}
+                            {service.duration && (
+                              <span className="block text-xs mt-1">
+                                Durasi: {service.duration}
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-sm font-semibold text-primary">
+                            {formatPrice(service.price)}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
 
               {/* Skills & Certifications */}
@@ -418,28 +349,23 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {farmer.gallery.map((item, index) => (
                     <div
-                      key={index}
+                      key={item.id}
                       className="group relative aspect-square rounded-xl overflow-hidden bg-muted cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
                     >
-                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-                        <ImageIcon className="w-10 h-10 text-primary/30" />
-                      </div>
-
-                      {/* Video indicator */}
-                      {item.type === "video" && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center">
-                            <Play className="w-6 h-6 text-white fill-white ml-1" />
-                          </div>
-                        </div>
-                      )}
+                      <img
+                        src={item.url}
+                        alt={item.caption || ""}
+                        className="w-full h-full object-cover"
+                      />
 
                       {/* Caption overlay */}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform">
-                        <p className="text-white text-xs font-medium">
-                          {item.caption}
-                        </p>
-                      </div>
+                      {item.caption && (
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform">
+                          <p className="text-white text-xs font-medium">
+                            {item.caption}
+                          </p>
+                        </div>
+                      )}
 
                       {/* Index badge */}
                       <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-black/50 text-white text-xs flex items-center justify-center">
@@ -458,7 +384,7 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
               <div className="rounded-2xl bg-card border border-border/50 p-6 sm:p-8">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="font-display text-xl font-semibold text-foreground">
-                    Ulasan ({farmer.reviews})
+                    Ulasan ({farmer.reviewCount})
                   </h2>
                   <div className="flex items-center gap-2">
                     <Star className="w-5 h-5 text-warning fill-warning" />
@@ -469,43 +395,57 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                 </div>
 
                 <div className="space-y-6">
-                  {reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="pb-6 border-b border-border/50 last:border-0 last:pb-0"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm flex-shrink-0">
-                          {review.avatar}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-foreground">
-                              {review.author}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {review.date}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 mb-2">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${
-                                  i < review.rating
-                                    ? "text-warning fill-warning"
-                                    : "text-muted"
-                                }`}
+                  {reviews.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-6">
+                      Belum ada ulasan.
+                    </p>
+                  ) : (
+                    reviews.map((review) => (
+                      <div
+                        key={review.id}
+                        className="pb-6 border-b border-border/50 last:border-0 last:pb-0"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm flex-shrink-0 overflow-hidden">
+                            {review.user.avatar ? (
+                              <img
+                                src={review.user.avatar}
+                                alt=""
+                                className="w-full h-full object-cover"
                               />
-                            ))}
+                            ) : (
+                              getInitials(review.user.fullName)
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {review.content}
-                          </p>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium text-foreground">
+                                {review.user.fullName}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {timeAgo(review.createdAt)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 mb-2">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < review.rating
+                                      ? "text-warning fill-warning"
+                                      : "text-muted"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {review.content}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
 
                 <Button variant="outline" className="w-full mt-6">
@@ -600,7 +540,7 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                     <div className="text-center p-4 rounded-xl bg-muted/30">
                       <Sprout className="w-6 h-6 text-primary mx-auto mb-2" />
                       <p className="font-bold text-foreground">
-                        {farmer.totalHarvest}
+                        {farmer.totalHarvest || "—"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Total Panen
@@ -609,7 +549,7 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                     <div className="text-center p-4 rounded-xl bg-muted/30">
                       <Users className="w-6 h-6 text-accent mx-auto mb-2" />
                       <p className="font-bold text-foreground">
-                        {farmer.students}
+                        {farmer.studentCount}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Murid Dibimbing
@@ -627,7 +567,7 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                     <div className="text-center p-4 rounded-xl bg-muted/30">
                       <Briefcase className="w-6 h-6 text-blue-500 mx-auto mb-2" />
                       <p className="font-bold text-foreground">
-                        {farmer.farmSize}
+                        {farmer.farmSize || "—"}
                       </p>
                       <p className="text-xs text-muted-foreground">Luas Farm</p>
                     </div>
@@ -655,7 +595,9 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                         Terakhir Aktif
                       </span>
                       <span className="text-sm font-medium text-foreground">
-                        {farmer.lastActive}
+                        {farmer.lastActiveAt
+                          ? timeAgo(farmer.lastActiveAt)
+                          : "—"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -663,8 +605,12 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                         <CheckCircle className="w-4 h-4" />
                         Status
                       </span>
-                      <span className="text-sm font-medium text-success">
-                        Terverifikasi
+                      <span
+                        className={`text-sm font-medium ${farmer.isVerified ? "text-success" : "text-muted-foreground"}`}
+                      >
+                        {farmer.isVerified
+                          ? "Terverifikasi"
+                          : "Belum Terverifikasi"}
                       </span>
                     </div>
                   </div>
