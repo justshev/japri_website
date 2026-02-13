@@ -307,7 +307,7 @@ Catatan: Berat dapat berkurang 5-10% selama pengiriman karena penguapan air alam
                 >
                   <Button
                     size="lg"
-                    className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                    className="w-full gap-2 bg-green-600 hover:bg-green-700 mt-4"
                   >
                     <MessageCircle className="w-5 h-5" />
                     Chat WhatsApp
