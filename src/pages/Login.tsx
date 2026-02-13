@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -22,6 +23,16 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect if already logged in
+  const from = (location.state as { from?: string })?.from || "/";
+  if (user) {
+    navigate(from, { replace: true });
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,14 +48,22 @@ const Login = () => {
 
     setIsLoading(true);
 
-    // Simulate login — replace with Supabase auth
-    setTimeout(() => {
-      setIsLoading(false);
+    const success = await login(email, password);
+    setIsLoading(false);
+
+    if (success) {
       toast({
         title: "Berhasil masuk! 🎉",
         description: "Selamat datang kembali di FungiFarm.",
       });
-    }, 1500);
+      navigate(from, { replace: true });
+    } else {
+      toast({
+        title: "Gagal masuk",
+        description: "Email atau password salah.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

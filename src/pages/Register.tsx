@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ import {
   Phone,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -31,6 +32,14 @@ const Register = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { register: registerUser, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if already logged in
+  if (user) {
+    navigate("/", { replace: true });
+    return null;
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -103,14 +112,27 @@ const Register = () => {
 
     setIsLoading(true);
 
-    // Simulate registration — replace with Supabase auth
-    setTimeout(() => {
-      setIsLoading(false);
+    const success = await registerUser({
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password,
+    });
+    setIsLoading(false);
+
+    if (success) {
       toast({
         title: "Pendaftaran berhasil! 🎉",
         description: "Selamat datang di komunitas FungiFarm.",
       });
-    }, 1500);
+      navigate("/", { replace: true });
+    } else {
+      toast({
+        title: "Gagal mendaftar",
+        description: "Terjadi kesalahan. Silakan coba lagi.",
+        variant: "destructive",
+      });
+    }
   };
 
   const passwordChecks = [

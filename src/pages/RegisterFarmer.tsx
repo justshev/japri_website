@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -31,9 +32,19 @@ import {
   X,
   Camera,
   Plus,
+  Info,
+  Shield,
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const RegisterFarmer = () => {
+  const { user } = useAuth();
+
+  const [fullName, setFullName] = useState(user?.fullName || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [whatsapp, setWhatsapp] = useState(user?.phone || "");
+
   const specialties = [
     "Jamur Tiram",
     "Shiitake",
@@ -108,6 +119,24 @@ const RegisterFarmer = () => {
             </span>
           </Link>
 
+          {/* Logged in user info banner */}
+          {user && (
+            <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-3 animate-fade-in">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Shield className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground text-sm">
+                  Mendaftar sebagai: {user.fullName}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Data pribadi Anda dari akun ({user.email}) telah diisi
+                  otomatis. Anda bisa mengubahnya jika diperlukan.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Form */}
             <div className="lg:col-span-2 space-y-6">
@@ -134,6 +163,9 @@ const RegisterFarmer = () => {
                       <Input
                         id="fullName"
                         placeholder="Contoh: Pak Hendra Wijaya"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className={user?.fullName ? "bg-muted/50" : ""}
                       />
                     </div>
                     <div className="space-y-2">
@@ -142,6 +174,9 @@ const RegisterFarmer = () => {
                         id="email"
                         type="email"
                         placeholder="email@contoh.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={user?.email ? "bg-muted/50" : ""}
                       />
                     </div>
                   </div>
@@ -149,11 +184,22 @@ const RegisterFarmer = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="phone">Nomor Telepon *</Label>
-                      <Input id="phone" placeholder="+62 812-xxxx-xxxx" />
+                      <Input
+                        id="phone"
+                        placeholder="+62 812-xxxx-xxxx"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className={user?.phone ? "bg-muted/50" : ""}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="whatsapp">Nomor WhatsApp *</Label>
-                      <Input id="whatsapp" placeholder="+62 812-xxxx-xxxx" />
+                      <Input
+                        id="whatsapp"
+                        placeholder="+62 812-xxxx-xxxx"
+                        value={whatsapp}
+                        onChange={(e) => setWhatsapp(e.target.value)}
+                      />
                     </div>
                   </div>
 
