@@ -621,87 +621,89 @@ const CreateProduct = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Preview Card */}
-              <div className="rounded-2xl bg-card border border-border/50 p-5 sticky top-28">
-                <h3 className="font-semibold text-foreground mb-4">
-                  Preview Produk
-                </h3>
-                <div className="rounded-xl border border-border/50 overflow-hidden">
-                  <div className="aspect-square bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center">
-                    {images.length > 0 ? (
-                      <ImageIcon className="w-12 h-12 text-primary/30" />
-                    ) : (
-                      <div className="text-center text-muted-foreground">
-                        <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                        <p className="text-xs">Belum ada foto</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h4 className="font-medium text-foreground line-clamp-2 mb-2">
-                      {productName || "Nama Produk"}
-                    </h4>
-                    <p className="text-lg font-bold text-primary">
-                      {price ? `Rp ${price}` : "Rp 0"}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        {unit || "/unit"}
-                      </span>
-                    </p>
-                    {location && (
-                      <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {location}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Tips Card */}
-              <div className="rounded-2xl bg-success/5 border border-success/20 p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="w-5 h-5 text-success" />
-                  <h3 className="font-semibold text-foreground">
-                    Tips Agar Cepat Laku
+            <div className="lg:col-span-1">
+              <div className="sticky top-28 space-y-6">
+                {/* Preview Card */}
+                <div className="rounded-2xl bg-card border border-border/50 p-5">
+                  <h3 className="font-semibold text-foreground mb-4">
+                    Preview Produk
                   </h3>
+                  <div className="rounded-xl border border-border/50 overflow-hidden">
+                    <div className="aspect-square bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center">
+                      {images.length > 0 ? (
+                        <ImageIcon className="w-12 h-12 text-primary/30" />
+                      ) : (
+                        <div className="text-center text-muted-foreground">
+                          <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                          <p className="text-xs">Belum ada foto</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-medium text-foreground line-clamp-2 mb-2">
+                        {productName || "Nama Produk"}
+                      </h4>
+                      <p className="text-lg font-bold text-primary">
+                        {price ? `Rp ${price}` : "Rp 0"}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          {unit || "/unit"}
+                        </span>
+                      </p>
+                      {location && (
+                        <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {location}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
-                    Upload foto produk yang jelas & menarik
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
-                    Tulis deskripsi lengkap dan jujur
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
-                    Berikan harga kompetitif
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
-                    Respon cepat pesan pembeli
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
-                    Update stok secara berkala
-                  </li>
-                </ul>
-              </div>
 
-              {/* Warning Card */}
-              <div className="rounded-2xl bg-warning/5 border border-warning/20 p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-5 h-5 text-warning" />
-                  <h3 className="font-semibold text-foreground">Perhatian</h3>
+                {/* Tips Card */}
+                <div className="rounded-2xl bg-success/5 border border-success/20 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle className="w-5 h-5 text-success" />
+                    <h3 className="font-semibold text-foreground">
+                      Tips Agar Cepat Laku
+                    </h3>
+                  </div>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                      Upload foto produk yang jelas & menarik
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                      Tulis deskripsi lengkap dan jujur
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                      Berikan harga kompetitif
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                      Respon cepat pesan pembeli
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                      Update stok secara berkala
+                    </li>
+                  </ul>
                 </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Produk yang melanggar akan dihapus</li>
-                  <li>• Dilarang menjual produk ilegal</li>
-                  <li>• Foto harus asli, bukan dari internet</li>
-                  <li>• Harga harus sesuai dengan produk</li>
-                </ul>
+
+                {/* Warning Card */}
+                <div className="rounded-2xl bg-warning/5 border border-warning/20 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-5 h-5 text-warning" />
+                    <h3 className="font-semibold text-foreground">Perhatian</h3>
+                  </div>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Produk yang melanggar akan dihapus</li>
+                    <li>• Dilarang menjual produk ilegal</li>
+                    <li>• Foto harus asli, bukan dari internet</li>
+                    <li>• Harga harus sesuai dengan produk</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
