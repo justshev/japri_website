@@ -137,6 +137,7 @@ export interface FarmerServiceItem {
 export interface FarmerDetail {
   id: string;
   fullName: string;
+  avatar: string | null;
   email: string;
   phone: string;
   whatsapp: string;

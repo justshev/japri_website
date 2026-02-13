@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import { useForumPosts } from "@/hooks/use-forum";
 import { useProducts } from "@/hooks/use-products";
+import {
+  UserAvatar,
+  ImagePlaceholder,
+} from "@/components/ui/avatar-placeholder";
 
 const FeaturedSection = () => {
   const { data: forumData, isLoading: loadingForum } = useForumPosts({
@@ -25,14 +29,6 @@ const FeaturedSection = () => {
 
   const forumPosts = forumData?.data?.posts ?? [];
   const products = productsData?.data?.products ?? [];
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
 
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -99,17 +95,11 @@ const FeaturedSection = () => {
                   <Link to={`/forum/${post.id}`} key={post.id}>
                     <article className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover-lift cursor-pointer h-full">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm overflow-hidden">
-                          {post.author.avatar ? (
-                            <img
-                              src={post.author.avatar}
-                              alt={post.author.fullName}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            getInitials(post.author.fullName)
-                          )}
-                        </div>
+                        <UserAvatar
+                          name={post.author.fullName}
+                          src={post.author.avatar}
+                          size="md"
+                        />
                         <div>
                           <p className="font-medium text-foreground text-sm">
                             {post.author.fullName}
@@ -185,15 +175,24 @@ const FeaturedSection = () => {
                   <Link to={`/marketplace/${product.id}`} key={product.id}>
                     <article className="rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover-lift overflow-hidden cursor-pointer h-full">
                       {/* Product Image */}
-                      <div className="relative h-48 bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center">
+                      <div className="relative h-48 bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center overflow-hidden">
                         {product.mainImage ? (
                           <img
                             src={product.mainImage}
                             alt={product.name}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                              (
+                                e.target as HTMLImageElement
+                              ).parentElement?.classList.add(
+                                "product-img-error",
+                              );
+                            }}
                           />
                         ) : (
-                          <Package className="w-16 h-16 text-primary/30" />
+                          <ImagePlaceholder type="product" />
                         )}
                         {product.badge && (
                           <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-success text-success-foreground text-xs font-semibold shadow-sm">
