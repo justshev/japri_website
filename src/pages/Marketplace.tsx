@@ -147,10 +147,12 @@ const Marketplace = () => {
                 Buy and sell mushrooms, supplies, and equipment
               </p>
             </div>
-            <Button size="lg" className="group">
-              <Plus className="w-5 h-5 mr-2" />
-              Sell Product
-            </Button>
+            <Link to="/marketplace/create">
+              <Button size="lg" className="group">
+                <Plus className="w-5 h-5 mr-2" />
+                Sell Product
+              </Button>
+            </Link>
           </div>
 
           {/* Search and Filter Bar */}

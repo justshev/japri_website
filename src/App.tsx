@@ -6,8 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Forum from "./pages/Forum";
 import ForumDetail from "./pages/ForumDetail";
+import CreatePost from "./pages/CreatePost";
 import Marketplace from "./pages/Marketplace";
 import ProductDetail from "./pages/ProductDetail";
+import CreateProduct from "./pages/CreateProduct";
 import Chat from "./pages/Chat";
 import Farmers from "./pages/Farmers";
 import FarmerDetail from "./pages/FarmerDetail";
@@ -25,8 +27,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/forum" element={<Forum />} />
+          <Route path="/forum/create" element={<CreatePost />} />
           <Route path="/forum/:id" element={<ForumDetail />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/marketplace/create" element={<CreateProduct />} />
           <Route path="/marketplace/:id" element={<ProductDetail />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/farmers" element={<Farmers />} />

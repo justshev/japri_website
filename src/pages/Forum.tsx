@@ -122,10 +122,12 @@ const Forum = () => {
                 Ask questions, share knowledge, and connect with fellow farmers
               </p>
             </div>
-            <Button size="lg" className="group">
-              <Plus className="w-5 h-5 mr-2" />
-              Create Post
-            </Button>
+            <Link to="/forum/create">
+              <Button size="lg" className="group">
+                <Plus className="w-5 h-5 mr-2" />
+                Create Post
+              </Button>
+            </Link>
           </div>
 
           {/* Search and Filter Bar */}
