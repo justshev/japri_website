@@ -22,6 +22,9 @@ import {
   Clock,
   Sprout,
   TrendingUp,
+  Image as ImageIcon,
+  Play,
+  Camera,
 } from "lucide-react";
 
 const FarmerDetail = () => {
@@ -97,11 +100,45 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
       },
     ],
     gallery: [
-      { url: "/placeholder-farm-1.jpg", caption: "Area produksi utama" },
-      { url: "/placeholder-farm-2.jpg", caption: "Proses panen jamur tiram" },
+      {
+        url: "/placeholder-farm-1.jpg",
+        caption: "Area produksi utama",
+        type: "image",
+      },
+      {
+        url: "/placeholder-farm-2.jpg",
+        caption: "Proses panen jamur tiram",
+        type: "image",
+      },
       {
         url: "/placeholder-farm-3.jpg",
         caption: "Sesi pelatihan dengan murid",
+        type: "image",
+      },
+      {
+        url: "/placeholder-farm-4.jpg",
+        caption: "Hasil panen berkualitas",
+        type: "image",
+      },
+      {
+        url: "/placeholder-farm-5.jpg",
+        caption: "Kumbung jamur modern",
+        type: "image",
+      },
+      {
+        url: "/placeholder-farm-6.jpg",
+        caption: "Tim kerja kami",
+        type: "image",
+      },
+      {
+        url: "/placeholder-video-1.jpg",
+        caption: "Video proses budidaya",
+        type: "video",
+      },
+      {
+        url: "/placeholder-farm-7.jpg",
+        caption: "Sertifikat dan penghargaan",
+        type: "image",
       },
     ],
   };
@@ -364,6 +401,57 @@ Jangan ragu untuk menghubungi saya jika Anda tertarik untuk berdiskusi lebih lan
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Photo Gallery */}
+              <div className="rounded-2xl bg-card border border-border/50 p-6 sm:p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
+                    <Camera className="w-5 h-5 text-primary" />
+                    Galeri Foto & Video
+                  </h2>
+                  <span className="text-sm text-muted-foreground">
+                    {farmer.gallery.length} item
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {farmer.gallery.map((item, index) => (
+                    <div
+                      key={index}
+                      className="group relative aspect-square rounded-xl overflow-hidden bg-muted cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                    >
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                        <ImageIcon className="w-10 h-10 text-primary/30" />
+                      </div>
+
+                      {/* Video indicator */}
+                      {item.type === "video" && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center">
+                            <Play className="w-6 h-6 text-white fill-white ml-1" />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Caption overlay */}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 translate-y-full group-hover:translate-y-0 transition-transform">
+                        <p className="text-white text-xs font-medium">
+                          {item.caption}
+                        </p>
+                      </div>
+
+                      {/* Index badge */}
+                      <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-black/50 text-white text-xs flex items-center justify-center">
+                        {index + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-4 text-center">
+                  Klik foto untuk melihat lebih besar
+                </p>
               </div>
 
               {/* Reviews */}
