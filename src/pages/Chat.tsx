@@ -28,6 +28,7 @@ import {
   useCreateConversation,
 } from "@/hooks/use-chat";
 import { useAuth } from "@/hooks/use-auth";
+import { UserAvatar } from "@/components/ui/avatar-placeholder";
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
@@ -109,14 +110,6 @@ const Chat = () => {
       minute: "2-digit",
     });
   };
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
 
   const safetyTipItems = [
     {
@@ -246,17 +239,11 @@ const Chat = () => {
                       }`}
                     >
                       <div className="relative">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary overflow-hidden">
-                          {conv.participant?.avatar ? (
-                            <img
-                              src={conv.participant.avatar}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            getInitials(conv.participant?.fullName || "?")
-                          )}
-                        </div>
+                        <UserAvatar
+                          name={conv.participant?.fullName || "?"}
+                          src={conv.participant?.avatar}
+                          size="lg"
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
@@ -291,17 +278,11 @@ const Chat = () => {
                 <div className="p-4 border-b border-border/50 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary overflow-hidden">
-                        {participant.avatar ? (
-                          <img
-                            src={participant.avatar}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          getInitials(participant.fullName)
-                        )}
-                      </div>
+                      <UserAvatar
+                        name={participant.fullName}
+                        src={participant.avatar}
+                        size="md"
+                      />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -412,17 +393,11 @@ const Chat = () => {
                     Info Penjual
                   </h3>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary overflow-hidden">
-                      {participant.avatar ? (
-                        <img
-                          src={participant.avatar}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        getInitials(participant.fullName)
-                      )}
-                    </div>
+                    <UserAvatar
+                      name={participant.fullName}
+                      src={participant.avatar}
+                      size="lg"
+                    />
                     <div>
                       <div className="flex items-center gap-1">
                         <span className="font-medium text-foreground">

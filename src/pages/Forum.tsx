@@ -21,6 +21,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useForumPosts } from "@/hooks/use-forum";
+import { UserAvatar } from "@/components/ui/avatar-placeholder";
 
 const Forum = () => {
   const [search, setSearch] = useState("");
@@ -72,14 +73,6 @@ const Forum = () => {
     if (days < 30) return `${days}d ago`;
     return date.toLocaleDateString("id-ID");
   };
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,17 +225,12 @@ const Forum = () => {
                     <article className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover-lift cursor-pointer">
                       <div className="flex items-start gap-4">
                         {/* Author Avatar */}
-                        {post.author.avatar ? (
-                          <img
-                            src={post.author.avatar}
-                            alt={post.author.fullName}
-                            className="hidden sm:block w-12 h-12 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="hidden sm:flex w-12 h-12 rounded-full bg-primary/10 items-center justify-center font-semibold text-primary flex-shrink-0">
-                            {getInitials(post.author.fullName)}
-                          </div>
-                        )}
+                        <UserAvatar
+                          name={post.author.fullName}
+                          src={post.author.avatar}
+                          size="lg"
+                          className="hidden sm:flex"
+                        />
 
                         <div className="flex-1 min-w-0">
                           {/* Header */}

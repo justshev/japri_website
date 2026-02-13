@@ -28,6 +28,7 @@ import {
   Camera,
 } from "lucide-react";
 import { useFarmer, useFarmerReviews } from "@/hooks/use-farmers";
+import { FarmerAvatar, UserAvatar } from "@/components/ui/avatar-placeholder";
 
 const FarmerDetail = () => {
   const { id } = useParams();
@@ -48,14 +49,6 @@ const FarmerDetail = () => {
     if (diff < 2592000) return `${Math.floor(diff / 604800)} minggu lalu`;
     return date.toLocaleDateString("id-ID");
   };
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("id-ID", {
@@ -137,16 +130,14 @@ const FarmerDetail = () => {
                 <div className="p-6 sm:p-8 relative">
                   <div className="flex flex-col sm:flex-row gap-6">
                     {/* Avatar */}
-                    <div className="w-28 h-28 rounded-2xl bg-primary/10 border-4 border-card flex items-center justify-center font-bold text-primary text-3xl flex-shrink-0 relative -mt-20 sm:-mt-24 shadow-lg z-10 overflow-hidden">
-                      {farmer.avatar ? (
-                        <img
-                          src={farmer.avatar}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        getInitials(farmer.fullName)
-                      )}
+                    <div className="relative -mt-20 sm:-mt-24 z-10 flex-shrink-0">
+                      <FarmerAvatar
+                        name={farmer.fullName}
+                        src={farmer.avatar}
+                        size="2xl"
+                        rounded="2xl"
+                        className="border-4 border-card shadow-lg"
+                      />
                       {farmer.isVerified && (
                         <CheckCircle className="absolute -bottom-2 -right-2 w-8 h-8 text-success fill-success-foreground stroke-success" />
                       )}
@@ -406,16 +397,12 @@ const FarmerDetail = () => {
                         className="pb-6 border-b border-border/50 last:border-0 last:pb-0"
                       >
                         <div className="flex items-start gap-4">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm flex-shrink-0 overflow-hidden">
-                            {review.user.avatar ? (
-                              <img
-                                src={review.user.avatar}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              getInitials(review.user.fullName)
-                            )}
+                          <div className="w-10 h-10 flex-shrink-0">
+                            <UserAvatar
+                              name={review.user.fullName}
+                              src={review.user.avatar}
+                              size="md"
+                            />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">

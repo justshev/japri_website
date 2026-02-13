@@ -27,6 +27,11 @@ import {
   useMarkReviewHelpful,
 } from "@/hooks/use-products";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  UserAvatar,
+  FarmerAvatar,
+  ImagePlaceholder,
+} from "@/components/ui/avatar-placeholder";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -61,14 +66,6 @@ const ProductDetail = () => {
     if (diff < 2592000) return `${Math.floor(diff / 604800)} minggu lalu`;
     return date.toLocaleDateString("id-ID");
   };
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
 
   if (isLoading) {
     return (
@@ -153,7 +150,7 @@ const ProductDetail = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Package className="w-32 h-32 text-primary/30" />
+                  <ImagePlaceholder type="product" />
                 )}
 
                 {/* Navigation Arrows */}
@@ -425,16 +422,12 @@ const ProductDetail = () => {
                         className="pb-6 border-b border-border/50 last:border-0 last:pb-0"
                       >
                         <div className="flex items-start gap-4">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm flex-shrink-0 overflow-hidden">
-                            {review.user.avatar ? (
-                              <img
-                                src={review.user.avatar}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              getInitials(review.user.fullName)
-                            )}
+                          <div className="w-10 h-10 flex-shrink-0">
+                            <UserAvatar
+                              name={review.user.fullName}
+                              src={review.user.avatar}
+                              size="md"
+                            />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">
@@ -486,16 +479,12 @@ const ProductDetail = () => {
                 {/* Seller Card */}
                 <div className="rounded-2xl bg-card border border-border/50 p-6">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-lg relative overflow-hidden">
-                      {product.seller.avatar ? (
-                        <img
-                          src={product.seller.avatar}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        getInitials(product.seller.name)
-                      )}
+                    <div className="relative flex-shrink-0">
+                      <FarmerAvatar
+                        name={product.seller.name}
+                        src={product.seller.avatar}
+                        size="xl"
+                      />
                       {product.seller.isVerified && (
                         <CheckCircle className="absolute -bottom-1 -right-1 w-5 h-5 text-success fill-success-foreground stroke-success" />
                       )}

@@ -30,6 +30,7 @@ import {
   useToggleCommentLike,
 } from "@/hooks/use-forum";
 import { useAuth } from "@/hooks/use-auth";
+import { UserAvatar } from "@/components/ui/avatar-placeholder";
 
 const ForumDetail = () => {
   const { id } = useParams();
@@ -60,14 +61,6 @@ const ForumDetail = () => {
     if (days < 30) return `${days}d ago`;
     return date.toLocaleDateString("id-ID");
   };
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
 
   const handlePostComment = async () => {
     if (!commentText.trim()) return;
@@ -159,17 +152,11 @@ const ForumDetail = () => {
                   {/* Author Info */}
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-3">
-                      {post.author.avatar ? (
-                        <img
-                          src={post.author.avatar}
-                          alt={post.author.fullName}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-lg">
-                          {getInitials(post.author.fullName)}
-                        </div>
-                      )}
+                      <UserAvatar
+                        name={post.author.fullName}
+                        src={post.author.avatar}
+                        size="lg"
+                      />
                       <div>
                         <p className="font-medium text-foreground">
                           {post.author.fullName}
@@ -332,9 +319,12 @@ const ForumDetail = () => {
                 {/* Add Comment */}
                 <div className="p-6 sm:p-8 border-b border-border/50 bg-muted/20">
                   <div className="flex gap-4">
-                    <div className="hidden sm:flex w-10 h-10 rounded-full bg-primary/10 items-center justify-center font-semibold text-primary text-sm flex-shrink-0">
-                      {user ? getInitials(user.fullName) : "?"}
-                    </div>
+                    <UserAvatar
+                      name={user?.fullName || "?"}
+                      src={null}
+                      size="md"
+                      className="hidden sm:flex"
+                    />
                     <div className="flex-1">
                       <Textarea
                         placeholder={
@@ -390,23 +380,16 @@ const ForumDetail = () => {
                       <div key={comment.id} className="p-6 sm:p-8">
                         {/* Main Comment */}
                         <div className="flex gap-4">
-                          {comment.author.avatar ? (
-                            <img
-                              src={comment.author.avatar}
-                              alt={comment.author.fullName}
-                              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                            />
-                          ) : (
-                            <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0 ${
-                                comment.author.isPostAuthor
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-primary/10 text-primary"
-                              }`}
-                            >
-                              {getInitials(comment.author.fullName)}
-                            </div>
-                          )}
+                          <UserAvatar
+                            name={comment.author.fullName}
+                            src={comment.author.avatar}
+                            size="md"
+                            className={
+                              comment.author.isPostAuthor
+                                ? "ring-2 ring-primary"
+                                : ""
+                            }
+                          />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <span className="font-medium text-foreground">
@@ -457,23 +440,16 @@ const ForumDetail = () => {
                           <div className="mt-6 ml-14 space-y-6">
                             {comment.replies.map((reply) => (
                               <div key={reply.id} className="flex gap-4">
-                                {reply.author.avatar ? (
-                                  <img
-                                    src={reply.author.avatar}
-                                    alt={reply.author.fullName}
-                                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                                  />
-                                ) : (
-                                  <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs flex-shrink-0 ${
-                                      reply.author.isPostAuthor
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-primary/10 text-primary"
-                                    }`}
-                                  >
-                                    {getInitials(reply.author.fullName)}
-                                  </div>
-                                )}
+                                <UserAvatar
+                                  name={reply.author.fullName}
+                                  src={reply.author.avatar}
+                                  size="sm"
+                                  className={
+                                    reply.author.isPostAuthor
+                                      ? "ring-2 ring-primary"
+                                      : ""
+                                  }
+                                />
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                                     <span className="font-medium text-foreground text-sm">
@@ -526,17 +502,11 @@ const ForumDetail = () => {
                   About the Author
                 </h3>
                 <div className="flex items-center gap-3 mb-4">
-                  {post.author.avatar ? (
-                    <img
-                      src={post.author.avatar}
-                      alt={post.author.fullName}
-                      className="w-14 h-14 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-xl">
-                      {getInitials(post.author.fullName)}
-                    </div>
-                  )}
+                  <UserAvatar
+                    name={post.author.fullName}
+                    src={post.author.avatar}
+                    size="xl"
+                  />
                   <div>
                     <p className="font-semibold text-foreground">
                       {post.author.fullName}

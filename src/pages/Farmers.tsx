@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useFarmers } from "@/hooks/use-farmers";
 import { useCommunityStats, useRegions } from "@/hooks/use-community";
+import { FarmerAvatar } from "@/components/ui/avatar-placeholder";
 
 const Farmers = () => {
   const [search, setSearch] = useState("");
@@ -50,14 +51,6 @@ const Farmers = () => {
     { name: "Mitra Bisnis", value: "partner", icon: Handshake },
     { name: "Terverifikasi", value: "verified", icon: CheckCircle },
   ];
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
 
   return (
     <div className="min-h-screen bg-background">
@@ -306,16 +299,12 @@ const Farmers = () => {
                       <article className="p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover-lift cursor-pointer h-full">
                         {/* Header */}
                         <div className="flex items-start gap-4 mb-4">
-                          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-lg flex-shrink-0 relative overflow-hidden">
-                            {farmer.avatar ? (
-                              <img
-                                src={farmer.avatar}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              getInitials(farmer.fullName)
-                            )}
+                          <div className="relative flex-shrink-0">
+                            <FarmerAvatar
+                              name={farmer.fullName}
+                              src={farmer.avatar}
+                              size="xl"
+                            />
                             {farmer.isVerified && (
                               <CheckCircle className="absolute -bottom-1 -right-1 w-5 h-5 text-success fill-success-foreground stroke-success" />
                             )}

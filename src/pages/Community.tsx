@@ -21,6 +21,7 @@ import {
   useRegions,
   useRecentMembers,
 } from "@/hooks/use-community";
+import { FarmerAvatar, UserAvatar } from "@/components/ui/avatar-placeholder";
 
 const Community = () => {
   const [search, setSearch] = useState("");
@@ -34,14 +35,6 @@ const Community = () => {
   const topFarmers = topFarmersData?.data ?? [];
   const regions = regionsData?.data ?? [];
   const recentMembers = recentData?.data ?? [];
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
 
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -154,16 +147,12 @@ const Community = () => {
                             </div>
 
                             {/* Avatar */}
-                            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-lg flex-shrink-0 relative overflow-hidden">
-                              {farmer.avatar ? (
-                                <img
-                                  src={farmer.avatar}
-                                  alt={farmer.fullName}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                getInitials(farmer.fullName)
-                              )}
+                            <div className="relative flex-shrink-0">
+                              <FarmerAvatar
+                                name={farmer.fullName}
+                                src={farmer.avatar}
+                                size="xl"
+                              />
                               {farmer.isVerified && (
                                 <CheckCircle className="absolute -bottom-1 -right-1 w-5 h-5 text-success fill-success-foreground stroke-success" />
                               )}
@@ -341,17 +330,11 @@ const Community = () => {
                           key={member.id}
                           className="flex items-center gap-3"
                         >
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm overflow-hidden">
-                            {member.avatar ? (
-                              <img
-                                src={member.avatar}
-                                alt={member.fullName}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              getInitials(member.fullName)
-                            )}
-                          </div>
+                          <UserAvatar
+                            name={member.fullName}
+                            src={member.avatar}
+                            size="md"
+                          />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-foreground text-sm truncate">
                               {member.fullName}
