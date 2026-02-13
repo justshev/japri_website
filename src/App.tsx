@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Forum from "./pages/Forum";
 import ForumDetail from "./pages/ForumDetail";
 import Marketplace from "./pages/Marketplace";
+import ProductDetail from "./pages/ProductDetail";
+import Chat from "./pages/Chat";
 import Farmers from "./pages/Farmers";
 import FarmerDetail from "./pages/FarmerDetail";
 import RegisterFarmer from "./pages/RegisterFarmer";
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum/:id" element={<ForumDetail />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/marketplace/:id" element={<ProductDetail />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="/farmers" element={<Farmers />} />
           <Route path="/farmers/register" element={<RegisterFarmer />} />
           <Route path="/farmers/:id" element={<FarmerDetail />} />

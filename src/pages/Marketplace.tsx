@@ -1,18 +1,19 @@
+import { Link } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Search, 
-  Plus, 
-  Filter, 
+import {
+  Search,
+  Plus,
+  Filter,
   Star,
   MapPin,
   Package,
   Leaf,
   Wrench,
   ShoppingBag,
-  Heart
+  Heart,
 } from "lucide-react";
 
 const Marketplace = () => {
@@ -112,9 +113,9 @@ const Marketplace = () => {
   ];
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
@@ -133,7 +134,7 @@ const Marketplace = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="pt-24 pb-16">
         <div className="section-container">
           {/* Page Header */}
@@ -156,10 +157,7 @@ const Marketplace = () => {
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input 
-                placeholder="Search products..." 
-                className="pl-10 h-12"
-              />
+              <Input placeholder="Search products..." className="pl-10 h-12" />
             </div>
             <Button variant="outline" className="h-12">
               <Filter className="w-5 h-5 mr-2" />
@@ -180,16 +178,20 @@ const Marketplace = () => {
                     <button
                       key={category.name}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors ${
-                        category.active 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        category.active
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       }`}
                     >
                       <span className="flex items-center gap-2">
                         <category.icon className="w-4 h-4" />
-                        <span className="text-sm font-medium">{category.name}</span>
+                        <span className="text-sm font-medium">
+                          {category.name}
+                        </span>
                       </span>
-                      <span className={`text-xs ${category.active ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                      <span
+                        className={`text-xs ${category.active ? "text-primary-foreground/80" : "text-muted-foreground"}`}
+                      >
                         {category.count}
                       </span>
                     </button>
@@ -208,11 +210,13 @@ const Marketplace = () => {
                       key={range.value}
                       className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-muted transition-colors"
                     >
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                       />
-                      <span className="text-sm text-muted-foreground">{range.label}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {range.label}
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -231,56 +235,61 @@ const Marketplace = () => {
             <div className="lg:col-span-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {products.map((product) => (
-                  <article
+                  <Link
+                    to={`/marketplace/${product.id}`}
                     key={product.id}
-                    className="rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover-lift overflow-hidden cursor-pointer group"
+                    className="block"
                   >
-                    {/* Product Image Placeholder */}
-                    <div className="relative h-48 bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center">
-                      <Package className="w-16 h-16 text-primary/30" />
-                      <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${getBadgeClasses(product.badgeColor)}`}>
-                        {product.badge}
-                      </span>
-                      <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100">
-                        <Heart className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    <div className="p-5">
-                      <h3 className="font-display font-semibold text-foreground mb-2 line-clamp-2">
-                        {product.name}
-                      </h3>
-
-                      <div className="flex items-baseline gap-1 mb-3">
-                        <span className="text-xl font-bold text-primary">
-                          {formatPrice(product.price)}
+                    <article className="rounded-2xl bg-card border border-border/50 hover:border-primary/30 hover-lift overflow-hidden cursor-pointer group">
+                      {/* Product Image Placeholder */}
+                      <div className="relative h-48 bg-gradient-to-br from-primary/5 to-accent/10 flex items-center justify-center">
+                        <Package className="w-16 h-16 text-primary/30" />
+                        <span
+                          className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${getBadgeClasses(product.badgeColor)}`}
+                        >
+                          {product.badge}
                         </span>
-                        <span className="text-sm text-muted-foreground">
-                          {product.unit}
-                        </span>
+                        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100">
+                          <Heart className="w-4 h-4" />
+                        </button>
                       </div>
 
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-warning fill-warning" />
-                          {product.rating}
-                        </span>
-                        <span>({product.reviews})</span>
-                        <span className="text-xs">•</span>
-                        <span>{product.sold} sold</span>
-                      </div>
+                      <div className="p-5">
+                        <h3 className="font-display font-semibold text-foreground mb-2 line-clamp-2">
+                          {product.name}
+                        </h3>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                        <span className="text-sm text-muted-foreground truncate max-w-[60%]">
-                          {product.seller}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <MapPin className="w-3 h-3" />
-                          {product.location}
-                        </span>
+                        <div className="flex items-baseline gap-1 mb-3">
+                          <span className="text-xl font-bold text-primary">
+                            {formatPrice(product.price)}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {product.unit}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
+                          <span className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-warning fill-warning" />
+                            {product.rating}
+                          </span>
+                          <span>({product.reviews})</span>
+                          <span className="text-xs">•</span>
+                          <span>{product.sold} sold</span>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                          <span className="text-sm text-muted-foreground truncate max-w-[60%]">
+                            {product.seller}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="w-3 h-3" />
+                            {product.location}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </article>
+                    </article>
+                  </Link>
                 ))}
               </div>
 
