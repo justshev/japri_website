@@ -27,6 +27,10 @@ import {
   CheckCircle,
   Sprout,
   Award,
+  Image as ImageIcon,
+  X,
+  Camera,
+  Plus,
 } from "lucide-react";
 
 const RegisterFarmer = () => {
@@ -450,6 +454,75 @@ const RegisterFarmer = () => {
                   <Button variant="outline" className="w-full gap-2">
                     + Tambah Sertifikat Lain
                   </Button>
+                </div>
+              </div>
+
+              {/* Photo Gallery */}
+              <div className="rounded-2xl bg-card border border-border/50 p-6 sm:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Camera className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-xl font-semibold text-foreground">
+                      Galeri Foto
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Upload foto farm untuk meningkatkan kepercayaan
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Tambahkan foto-foto farm, proses budidaya, hasil panen, atau
+                    kegiatan lainnya. Galeri foto membantu calon mitra lebih
+                    percaya dengan profil Anda.
+                  </p>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {/* Uploaded photos placeholder */}
+                    {[1, 2, 3].map((index) => (
+                      <div
+                        key={index}
+                        className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border/50 group"
+                      >
+                        <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                          <ImageIcon className="w-8 h-8 text-primary/30" />
+                        </div>
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-black/50 text-white text-xs">
+                          Foto {index}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Upload button */}
+                    <div className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors">
+                      <Plus className="w-8 h-8 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        Tambah Foto
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                    <h4 className="font-medium text-foreground text-sm mb-2">
+                      Tips Foto yang Baik:
+                    </h4>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• Foto area produksi/kumbung dari berbagai sudut</li>
+                      <li>• Foto proses budidaya dan panen</li>
+                      <li>• Foto hasil panen berkualitas</li>
+                      <li>• Foto sesi pelatihan (jika menjadi mentor)</li>
+                      <li>• Format JPG/PNG, maksimal 5MB per foto</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
 
