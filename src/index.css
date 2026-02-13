@@ -1,0 +1,272 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mushroom Farming Community - Design System
+   A warm, organic, trust-focused design with green as the primary color
+   All colors in HSL format
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    /* Core Brand Colors - Forest Green Palette */
+    --background: 80 20% 98%;
+    --foreground: 150 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 30% 12%;
+
+    /* Primary - Rich Forest Green */
+    --primary: 142 45% 28%;
+    --primary-foreground: 80 20% 98%;
+
+    /* Secondary - Warm Earth */
+    --secondary: 35 35% 92%;
+    --secondary-foreground: 35 40% 25%;
+
+    /* Muted - Soft sage */
+    --muted: 120 15% 94%;
+    --muted-foreground: 150 10% 45%;
+
+    /* Accent - Fresh Mint */
+    --accent: 158 55% 42%;
+    --accent-foreground: 80 20% 98%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* UI Elements */
+    --border: 120 15% 88%;
+    --input: 120 15% 88%;
+    --ring: 142 45% 28%;
+
+    --radius: 0.75rem;
+
+    /* Extended Palette */
+    --success: 142 70% 40%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 92% 10%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* Gradient Tokens */
+    --gradient-hero: linear-gradient(135deg, hsl(142 45% 28%) 0%, hsl(158 55% 35%) 50%, hsl(142 50% 22%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(120 15% 98%) 100%);
+    --gradient-nature: linear-gradient(180deg, hsl(80 20% 98%) 0%, hsl(120 20% 95%) 100%);
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(150 30% 12% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(150 30% 12% / 0.08), 0 2px 4px -2px hsl(150 30% 12% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(150 30% 12% / 0.1), 0 4px 6px -4px hsl(150 30% 12% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(150 30% 12% / 0.1), 0 8px 10px -6px hsl(150 30% 12% / 0.05);
+    --shadow-glow: 0 0 40px -10px hsl(142 45% 28% / 0.3);
+
+    /* Sidebar */
+    --sidebar-background: 120 15% 97%;
+    --sidebar-foreground: 150 30% 12%;
+    --sidebar-primary: 142 45% 28%;
+    --sidebar-primary-foreground: 80 20% 98%;
+    --sidebar-accent: 158 55% 42%;
+    --sidebar-accent-foreground: 80 20% 98%;
+    --sidebar-border: 120 15% 88%;
+    --sidebar-ring: 142 45% 28%;
+  }
+
+  .dark {
+    --background: 150 25% 8%;
+    --foreground: 80 20% 95%;
+
+    --card: 150 20% 12%;
+    --card-foreground: 80 20% 95%;
+
+    --popover: 150 20% 12%;
+    --popover-foreground: 80 20% 95%;
+
+    --primary: 142 50% 45%;
+    --primary-foreground: 150 25% 8%;
+
+    --secondary: 150 15% 18%;
+    --secondary-foreground: 80 20% 90%;
+
+    --muted: 150 15% 18%;
+    --muted-foreground: 120 10% 60%;
+
+    --accent: 158 55% 50%;
+    --accent-foreground: 150 25% 8%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 15% 20%;
+    --input: 150 15% 20%;
+    --ring: 142 50% 45%;
+
+    --sidebar-background: 150 20% 10%;
+    --sidebar-foreground: 80 20% 95%;
+    --sidebar-primary: 142 50% 45%;
+    --sidebar-primary-foreground: 150 25% 8%;
+    --sidebar-accent: 158 55% 50%;
+    --sidebar-accent-foreground: 150 25% 8%;
+    --sidebar-border: 150 15% 20%;
+    --sidebar-ring: 142 50% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', system-ui, sans-serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Hero Gradient Background */
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  /* Nature Background */
+  .nature-bg {
+    background: var(--gradient-nature);
+  }
+
+  /* Card with subtle gradient */
+  .card-gradient {
+    background: var(--gradient-card);
+  }
+
+  /* Glow effect for important elements */
+  .glow-primary {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Organic blob shapes */
+  .blob {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20;
+  }
+
+  /* Smooth hover transitions */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .hover-lift:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Trust badge styling */
+  .trust-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium;
+    @apply bg-primary/10 text-primary;
+  }
+
+  /* Section container */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Animated underline */
+  .animated-underline {
+    @apply relative;
+  }
+
+  .animated-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300;
+  }
+
+  .animated-underline:hover::after {
+    @apply w-full;
+  }
+}
+
+@layer utilities {
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-hero);
+  }
+
+  /* Fade in animation */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  /* Stagger children animation */
+  .stagger-children > * {
+    @apply animate-fade-in;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 300ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 400ms; }
+
+  /* Float animation for decorative elements */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  /* Pulse glow */
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px -5px hsl(142 45% 28% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px -5px hsl(142 45% 28% / 0.5);
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+}
